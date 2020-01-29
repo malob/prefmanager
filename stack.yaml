@@ -1,0 +1,8 @@
+resolver: lts-14.21
+
+packages:
+- .
+
+extra-deps:
+- plist-0.0.6
+- diffmap-0.1.0.0

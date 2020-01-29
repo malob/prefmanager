@@ -1,0 +1,50 @@
+name:       prefmanager
+version:    0.1.0.0
+github:     malob/prefmanager
+author:     Malo Bourgon
+maintainer: mbourgon@gmail.com
+copyright:  2020 Malo Bourgon
+license:    BSD3
+synopsis:   A CLI utility for managing macOS preferences
+category:   CLI
+
+extra-source-files:
+- README.md
+
+description: Please see the README on GitHub at <https://github.com/malob/prefmanager#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- async
+- containers
+- diffmap
+- hxt
+- optparse-applicative
+- plist
+- pretty-show
+- process
+
+library:
+  source-dirs: src
+
+executables:
+  prefmanager:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - prefmanager
+
+tests:
+  prefmanager-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - prefmanager
