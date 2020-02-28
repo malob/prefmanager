@@ -51,7 +51,7 @@ exports = (M.fromList <$>) . mapConcurrently (\d -> (d,) <$> export d) . S.toLis
 
 -- | Watches a 'Set' of domains for changes.
 watch :: Set Domain -> IO ()
-watch ds = exports ds >>= go where
+watch ds = exports ds >>= (putStrLn "Watching..." >>) . go where
   go old = do
     new <- exports ds
     let plDiffs
