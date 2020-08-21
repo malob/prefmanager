@@ -20,21 +20,26 @@ opts = info
 -- | App CLI commands
 commands :: Parser (IO ())
 commands = hsubparser
-  (command "watch"
-    (info
-      (   watch . S.fromList <$> some
-            (Domain <$> strArgument
-              (  metavar "DOMAIN..."
-              <> completer (listIOCompleter $ fmap coerce . S.toList <$> domains)
-              <> help "Domain(s) that will be watched"
-              )
-            )
-      <|> flag' (watch =<< domains)
-            (  long  "all"
-            <> short 'a'
-            <> help  "Watch all domains including NSGlobalDomain"
-            )
-      )
-      (progDesc "Watch domain(s) for changes")
-    )
+  (  command "watch"
+       (info
+         (   watch . S.fromList <$> some
+               (Domain <$> strArgument
+                 (  metavar "DOMAIN..."
+                 <> completer (listIOCompleter $ fmap coerce . S.toList <$> domains)
+                 <> help "Domain(s) that will be watched"
+                 )
+               )
+         <|> flag' (watch =<< domains)
+               (  long  "all"
+               <> short 'a'
+               <> help  "Watch all domains including NSGlobalDomain"
+               )
+         )
+         $ progDesc "Watch domain(s) for changes"
+       )
+  <> command "list-domains"
+       (info
+         (pure $ S.toList <$> domains >>= mapM_ (putStrLn . coerce))
+         (progDesc "List all domains")
+       )
   )
