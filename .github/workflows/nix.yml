@@ -1,0 +1,23 @@
+name: "Nix Build and Cache"
+on:
+  pull_request:
+  push:
+jobs:
+  build-and-cache:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v11
+      with:
+        extra_nix_config: |
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo=
+          substituters = https://cache.nixos.org https://hydra.iohk.io https://iohk.cachix.org
+    - uses: cachix/cachix-action@v6
+      with:
+        name: malo
+        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+    - run: nix-build -A prefmanager.components.exes.prefmanager
+    - run: nix-shell --run "echo OK"
