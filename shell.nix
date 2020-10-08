@@ -3,7 +3,7 @@
 with pkgs;
 mkShell {
   buildInputs = [
-    haskell.packages.ghc865.haskell-language-server
+    haskell.packages.ghc884.haskell-language-server
     cabal2nix
     stack
     niv

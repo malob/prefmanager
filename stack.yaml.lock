@@ -5,22 +5,26 @@
 
 packages:
 - completed:
-    hackage: plist-0.0.6@sha256:2c25ca88b99581ef0fe44f9d7dc636f24026603624be9c43631d2b03752886b3,1702
-    pantry-tree:
-      size: 463
-      sha256: 92af2902f8f62e95ec57a5671267e2882cbe5092eaa36fce82172bbdb768cd7f
-  original:
-    hackage: plist-0.0.6
-- completed:
     hackage: diffmap-0.1.0.0@sha256:27ea8c315b5dbfb243b2c3b61eab2164534e1d02887a05392dda65995cd36c3e,727
     pantry-tree:
       size: 264
       sha256: 76ea9b9ad91d113addadf58cb19e289e84347ab667aa5c7feed0a1ccfa4ed613
   original:
     hackage: diffmap-0.1.0.0
+- completed:
+    size: 4384
+    url: https://github.com/malob/plist/archive/4103af23b364c101e44da115367800a2f90cc7c3.tar.gz
+    name: plist
+    version: 0.0.6
+    sha256: fcc0a7f0dcdb81d379329f5be2af2a566431ed66cbe37e9a1f4101e49b80d4c6
+    pantry-tree:
+      size: 512
+      sha256: 0ede20c4e670e906987a171721f05c3a3337ed936d5ff84e6fe77c13e2c7fbdf
+  original:
+    url: https://github.com/malob/plist/archive/4103af23b364c101e44da115367800a2f90cc7c3.tar.gz
 snapshots:
 - completed:
-    size: 524162
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/21.yaml
-    sha256: 9a55dd75853718f2bbbe951872b36a3b7802fcd71796e0f25b8664f24e34c666
-  original: lts-14.21
+    size: 532386
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/17.yaml
+    sha256: d3ee1ae797cf63189c95cf27f00700304946c5cb3c1e6a82001cd6584a221e1b
+  original: lts-16.17
