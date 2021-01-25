@@ -1,10 +1,31 @@
 # macOS Preferences Manager
 
-This project is a WIP, currently only basic watching functionality has been implemented.
+This project is a WIP, currently only watching functionality has been implemented.
 
 ## Usage
 
+Currently available commands:
+
 ```
+> prefmanager --help
+
+macOS Preferences Manager - a utility for working with macOS preferences
+
+Usage: prefmanager COMMAND
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  watch                    Watch domain(s) for changes
+  domains                  List all domains
+```
+
+Watch functionality:
+
+```
+> prefmanager watch --help
+
 Usage: prefmanager watch (DOMAIN... | (-a|--all))
   Watch domain(s) for changes
 
@@ -13,3 +34,5 @@ Available options:
   -a,--all                 Watch all domains including NSGlobalDomain
   -h,--help                Show this help text
 ```
+
+![Watch command example](./screenshot.png)

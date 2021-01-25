@@ -41,7 +41,7 @@ commands = hsubparser
          )
          $ progDesc "Watch domain(s) for changes"
        )
-  <> command "list-domains"
+  <> command "domains"
        (info
          (pure $ domains >>= traverse_ (putStrLn . T.unpack . coerce) . S.toList)
          (progDesc "List all domains")
