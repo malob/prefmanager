@@ -5,26 +5,26 @@
 
 packages:
 - completed:
-    hackage: diffmap-0.1.0.0@sha256:27ea8c315b5dbfb243b2c3b61eab2164534e1d02887a05392dda65995cd36c3e,727
+    hackage: patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
     pantry-tree:
-      size: 264
-      sha256: 76ea9b9ad91d113addadf58cb19e289e84347ab667aa5c7feed0a1ccfa4ed613
+      size: 368
+      sha256: d2ca47451a599605c641b7c353588d7e1ba3d6036c8a52040b7d1b5b1af8959b
   original:
-    hackage: diffmap-0.1.0.0
+    hackage: patience-0.3
 - completed:
-    size: 4384
-    url: https://github.com/malob/plist/archive/4103af23b364c101e44da115367800a2f90cc7c3.tar.gz
+    size: 4351
+    url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
     name: plist
     version: 0.0.6
-    sha256: fcc0a7f0dcdb81d379329f5be2af2a566431ed66cbe37e9a1f4101e49b80d4c6
+    sha256: 7943778b77d008b8e529035d8a4d42c537ede9efe3d24900eb0d855b4567a892
     pantry-tree:
       size: 512
-      sha256: 0ede20c4e670e906987a171721f05c3a3337ed936d5ff84e6fe77c13e2c7fbdf
+      sha256: 4872e51ef6ab654c99e06f286635fe1c977e165bc38f77c6bfb402e9fbff0559
   original:
-    url: https://github.com/malob/plist/archive/4103af23b364c101e44da115367800a2f90cc7c3.tar.gz
+    url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
 snapshots:
 - completed:
-    size: 532386
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/17.yaml
-    sha256: d3ee1ae797cf63189c95cf27f00700304946c5cb3c1e6a82001cd6584a221e1b
-  original: lts-16.17
+    size: 563098
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/1/20.yaml
+    sha256: 97841a28b47a29e798aefda350785c31823f64f31c43ba057fc6c707dfb7ead3
+  original: nightly-2021-01-20

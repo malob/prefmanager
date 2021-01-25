@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.3.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1af3ad98cee7d7fc142970a5965d8baebd3604edff043fae4c2b5d15e4cde1dc
+-- hash: e47b42f89876fbc6a9f6ac24c1b66d161577d67abc0267f021a78a23c1ca8389
 
 name:           prefmanager
 version:        0.1.0.0
@@ -29,6 +29,8 @@ source-repository head
 library
   exposed-modules:
       Defaults
+      Defaults.Pretty
+      Defaults.Types
   other-modules:
       Paths_prefmanager
   hs-source-dirs:
@@ -37,12 +39,14 @@ library
       async
     , base >=4.7 && <5
     , containers
-    , diffmap
     , hxt
     , optparse-applicative
+    , patience
     , plist
-    , pretty-show
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , process
+    , text
   default-language: Haskell2010
 
 executable prefmanager
@@ -56,13 +60,15 @@ executable prefmanager
       async
     , base >=4.7 && <5
     , containers
-    , diffmap
     , hxt
     , optparse-applicative
+    , patience
     , plist
     , prefmanager
-    , pretty-show
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , process
+    , text
   default-language: Haskell2010
 
 test-suite prefmanager-test
@@ -77,11 +83,13 @@ test-suite prefmanager-test
       async
     , base >=4.7 && <5
     , containers
-    , diffmap
     , hxt
     , optparse-applicative
+    , patience
     , plist
     , prefmanager
-    , pretty-show
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , process
+    , text
   default-language: Haskell2010

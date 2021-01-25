@@ -17,12 +17,14 @@ dependencies:
 - base >= 4.7 && < 5
 - async
 - containers
-- diffmap
 - hxt
 - optparse-applicative
+- patience
 - plist
-- pretty-show
+- prettyprinter
+- prettyprinter-ansi-terminal
 - process
+- text
 
 library:
   source-dirs: src

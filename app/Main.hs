@@ -1,11 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           Control.Monad                  ( join )
-import           Data.Coerce                    ( coerce )
-import qualified Data.Set                      as S
-import           Options.Applicative
-
 import Defaults
+import Defaults.Types (DomainName(..))
+
+import Control.Monad (join)
+import Data.Coerce (coerce)
+import Data.Foldable (traverse_)
+import qualified Data.Set as S
+import qualified Data.Text as T
+import Options.Applicative
 
 -- | Main
 main :: IO ()
@@ -23,9 +27,9 @@ commands = hsubparser
   (  command "watch"
        (info
          (   watch . S.fromList <$> some
-               (Domain <$> strArgument
+               (DomainName <$> strArgument
                  (  metavar "DOMAIN..."
-                 <> completer (listIOCompleter $ fmap coerce . S.toList <$> domains)
+                 <> completer (listIOCompleter $ fmap (T.unpack . coerce) . S.toList <$> domains)
                  <> help "Domain(s) that will be watched"
                  )
                )
@@ -39,7 +43,7 @@ commands = hsubparser
        )
   <> command "list-domains"
        (info
-         (pure $ S.toList <$> domains >>= mapM_ (putStrLn . coerce))
+         (pure $ domains >>= traverse_ (putStrLn . T.unpack . coerce) . S.toList)
          (progDesc "List all domains")
        )
   )

@@ -2,3 +2,5 @@
 *~
 .envrc
 result
+result-doc
+.direnv/

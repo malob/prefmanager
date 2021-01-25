@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "prefmanager:lib"
+
+    - path: "./app/Main.hs"
+      component: "prefmanager:exe:prefmanager"
+
+    - path: "./app/Paths_prefmanager.hs"
+      component: "prefmanager:exe:prefmanager"
+
+    - path: "./test"
+      component: "prefmanager:test:prefmanager-test"

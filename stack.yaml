@@ -1,14 +1,14 @@
-# GHC 8.8.4
-resolver: lts-16.17
+# GHC 8.10.3
+resolver: nightly-2021-01-20
 
 packages:
 - .
 
 extra-deps:
-- diffmap-0.1.0.0
+- patience-0.3
 # Use fork of plist package that supports MonadFail
 - github: malob/plist
-  commit: 4103af23b364c101e44da115367800a2f90cc7c3
-  # nix-sha256: 126c52498c89gd015p40hg671dg58j8xq8ggdqfywnkw2c8cjxxr
+  commit: 5e22be0933bf9a100868b944fa7a8b1236b99255
 
-allow-newer: true
+nix:
+  shell-file: ./stack.nix
