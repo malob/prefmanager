@@ -4,50 +4,47 @@ module Defaults.Pretty where
 
 import Defaults.Types (DomainDiff(..), DomainName(..), Key)
 
-import Data.Bool (bool)
-import Data.Coerce (coerce)
-import Data.Map (Map, foldrWithKey)
+import Prelude hiding (group)
+import Relude.Extra (un)
+
+import Data.Map.Strict (foldMapWithKey)
 import Patience.Map (Delta(..))
 import Prettyprinter
 import Prettyprinter.Render.Terminal
 import Text.XML.Plist (PlObject(..))
 
 prettyDomainDiffs :: Map DomainName DomainDiff -> Doc AnsiStyle
-prettyDomainDiffs = foldrWithKey go emptyDoc where
-  go :: DomainName -> DomainDiff -> Doc AnsiStyle -> Doc AnsiStyle
-  go (DomainName name) diff doc
-    =  doc
+prettyDomainDiffs = foldMapWithKey go where
+  go :: DomainName -> DomainDiff -> Doc AnsiStyle
+  go (DomainName name) diff
+    = annotate (bold <> italicized) (pretty name)
     <> hardline
-    <> hardline
-    <> annotate (bold <> italicized) (pretty name)
     <> hardline
     <> indent 2 (prettyDomainDiff diff)
+    <> hardline
 
 prettyDomainDiff :: DomainDiff -> Doc AnsiStyle
-prettyDomainDiff = foldrWithKey go emptyDoc . coerce where
-  go :: Key -> Delta PlObject -> Doc AnsiStyle -> Doc AnsiStyle
-  go key delta doc
-    =  doc
-    <> hardline
-    <> case delta of
-      Delta old new
-        -> pretty key <+> "(Value changed)"
-        <> hardline
-        <> indent 2 (red (pretty old) <> hardline <> green (pretty new))
-      New x
-        -> green
-        $  pretty key <+> "(Key added)"
-        <> hardline
-        <> indent 2 (pretty x)
-      Old x
-        -> red
-        $  pretty key <+> "(Key removed)"
-        <> hardline
-        <> indent 2 (pretty x)
-      Same x
-        -> pretty key <+> "(No change)"
-        <> hardline
-        <> indent 2 (pretty x)
+prettyDomainDiff = foldMapWithKey go . un where
+  go :: Key -> Delta PlObject -> Doc AnsiStyle
+  go key = (<> hardline <> hardline) . \case
+    Delta old new
+      -> pretty key <+> "(Value changed)"
+      <> hardline
+      <> indent 2 (red (pretty old) <> hardline <> green (pretty new))
+    New x
+      -> green
+      $  pretty key <+> "(Key added)"
+      <> hardline
+      <> indent 2 (pretty x)
+    Old x
+      -> red
+      $  pretty key <+> "(Key removed)"
+      <> hardline
+      <> indent 2 (pretty x)
+    Same x
+      -> pretty key <+> "(No change)"
+      <> hardline
+      <> indent 2 (pretty x)
   red = annotate $ colorDull Red
   green = annotate $ colorDull Green
 

@@ -1,6 +1,6 @@
 # macOS Preferences Manager
 
-This project is a WIP, currently only watching functionality has been implemented.
+This project is a WIP.
 
 ## Usage
 
@@ -9,7 +9,7 @@ Currently available commands:
 ```
 > prefmanager --help
 
-macOS Preferences Manager - a utility for working with macOS preferences
+macOS Preferences Manager - a utility for working with macOS preferences.
 
 Usage: prefmanager COMMAND
 
@@ -17,8 +17,9 @@ Available options:
   -h,--help                Show this help text
 
 Available commands:
-  watch                    Watch domain(s) for changes
-  domains                  List all domains
+  watch                    Watch domain(s) for changes.
+  domains                  List all domains.
+  keys                     List the current keys in a domain.
 ```
 
 Watch functionality:

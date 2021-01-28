@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e47b42f89876fbc6a9f6ac24c1b66d161577d67abc0267f021a78a23c1ca8389
+-- hash: 1a8cff5464ff5ded24a399492c6be76412d42e1e21780bb40565735f140afab2
 
 name:           prefmanager
 version:        0.1.0.0
@@ -31,21 +31,23 @@ library
       Defaults
       Defaults.Pretty
       Defaults.Types
+      Prelude
   other-modules:
       Paths_prefmanager
   hs-source-dirs:
       src
   build-depends:
-      async
-    , base >=4.7 && <5
+      ansi-terminal
+    , async
+    , base-noprelude
     , containers
     , hxt
-    , optparse-applicative
     , patience
     , plist
     , prettyprinter
     , prettyprinter-ansi-terminal
     , process
+    , relude
     , text
   default-language: Haskell2010
 
@@ -57,18 +59,9 @@ executable prefmanager
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      async
-    , base >=4.7 && <5
-    , containers
-    , hxt
+      base-noprelude
     , optparse-applicative
-    , patience
-    , plist
     , prefmanager
-    , prettyprinter
-    , prettyprinter-ansi-terminal
-    , process
-    , text
   default-language: Haskell2010
 
 test-suite prefmanager-test
@@ -80,16 +73,6 @@ test-suite prefmanager-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      async
-    , base >=4.7 && <5
-    , containers
-    , hxt
-    , optparse-applicative
-    , patience
-    , plist
+      base-noprelude
     , prefmanager
-    , prettyprinter
-    , prettyprinter-ansi-terminal
-    , process
-    , text
   default-language: Haskell2010

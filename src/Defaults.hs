@@ -1,70 +1,81 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 module Defaults where
 
 import Defaults.Pretty (prettyDomainDiffs)
-import Defaults.Types (DomainDiff(..), Domains, Domain, DomainName(..))
+import Defaults.Types (DomainDiff(..), Domains(..), Domain(..), DomainName(..), Key)
+
+import Relude.Extra (un, wrap, traverseToSnd, keys)
 
 import Control.Concurrent.Async (mapConcurrently)
-import Data.Coerce (coerce)
 import Data.List (delete)
-import Data.Map (Map)
-import qualified Data.Map as M
-import Data.Maybe (fromJust)
-import Data.Set (Set)
-import qualified Data.Set as S
-import Data.Text (Text)
-import qualified Data.Text as T
-import Patience.Map
+import qualified Data.Map.Strict as M
+import Data.Text (stripEnd, splitOn)
+import Patience.Map (diff, isSame, toDelta)
 import Prettyprinter.Render.Terminal (putDoc)
-import System.IO (hFlush, stdout)
+import System.Console.ANSI (clearLine, setCursorColumn)
+import System.IO (hFlush)
 import System.Process (shell, readCreateProcess)
 import Text.XML.HXT.Core (no, withSubstDTDEntities, withValidate)
 import Text.XML.Plist (PlObject, fromPlDict, readPlistFromString)
 
 -- | Convenience function for running macOS @defaults@ command.
 defaultsCmd :: Text -> IO Text
-defaultsCmd (T.unpack -> s) = T.pack <$> readCreateProcess (shell $ "defaults " <> s) ""
+defaultsCmd (toString -> t) = toText <$> readCreateProcess (shell $ "/usr/bin/defaults " <> t) ""
 
 -- | Convenience function for parsing Plist strings
 parsePlist :: Text -> IO PlObject
-parsePlist = readPlistFromString [withValidate no, withSubstDTDEntities no] . T.unpack
+parsePlist = readPlistFromString [withValidate no, withSubstDTDEntities no] . toString
 
 -- | Gets list of domains by running @defaults domains@ and adds @NSGlobalDomain@ to the 'Set'.
 domains :: IO (Set DomainName)
 domains
-  =   S.fromList
-  .   coerce
+  =   fromList
+  .   wrap
   .   ("NSGlobalDomain" :)
-  .   T.splitOn ", "
-  .   T.stripEnd
+  .   splitOn ", "
+  .   stripEnd
   <$> defaultsCmd "domains"
 
 -- | Runs @defaults export [domain] -@ and parses the output.
 export :: DomainName -> IO Domain
-export (coerce -> d)
-  =   coerce
-  .   M.fromList
-  .   fromJust
+export d
+  =   wrap
+  .   fromList @(Map _ _)
+  .   maybeToMonoid
   .   fromPlDict
-  <$> (defaultsCmd ("export '" <> d <> "' -") >>= parsePlist)
+  <$> (defaultsCmd ("export '" <> un d <> "' -") >>= parsePlist)
 
 -- | Runs 'export' on the 'Set' of provided domains
 exports :: Set DomainName -> IO Domains
-exports = (M.fromList <$>) . mapConcurrently (\d -> (d,) <$> export d) . S.toList
+exports = wrap . fmap (fromList @(Map _ _)) . mapConcurrently (traverseToSnd export) . toList
 
 diffDomain :: Domain -> Domain -> DomainDiff
-diffDomain old new = coerce $ M.filter (not . isSame) $ diff old new
+diffDomain (Domain old) (Domain new) = wrap $ M.filter (not . isSame) $ diff old new
 
 -- | Watches a 'Set' of domains and prints any changes.
 watch :: Set DomainName -> IO ()
-watch ds = exports ds >>= (putStrLn "Watching..." >>) . go  where
-  go :: Domains -> IO ()
-  go old = do
+watch ds = exports ds >>= (putStrLn "Watching..." *>) . go 0 where
+  go :: Int -> Domains -> IO ()
+  go count old = do
+    putText "Processing domains"
+    if count > 0 then putText $ " (" <> show count <> " loops with no changes)"  else pass
+    hFlush stdout
     new <- exports ds
-    let domainDiffs = uncurry diffDomain <$> toDelta (diff old new)
-    (if null domainDiffs then pure () else putDoc $ prettyDomainDiffs domainDiffs)
-      *> hFlush stdout
-      *> go new
+    let domainDiffs = uncurry diffDomain <$> toDelta (diff (un old) (un new))
+    clearLine
+    setCursorColumn 0
+    if null domainDiffs
+      then go (count + 1) new
+      else do
+        putDoc $ prettyDomainDiffs domainDiffs
+        go 0 new
+
+-- | Print the keys of a given domain
+printKeys :: DomainName -> IO ()
+printKeys = traverse_ putStrLn . keys @(Map _ PlObject) . un <=< export
+
+-- | Print the list of available domains
+printDomains :: IO ()
+printDomains = traverse_ (putTextLn . un) =<< domains

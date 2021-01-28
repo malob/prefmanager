@@ -14,20 +14,22 @@ extra-source-files:
 description: Please see the README on GitHub at <https://github.com/malob/prefmanager#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- async
-- containers
-- hxt
-- optparse-applicative
-- patience
-- plist
-- prettyprinter
-- prettyprinter-ansi-terminal
-- process
-- text
+- base-noprelude
 
 library:
   source-dirs: src
+  dependencies:
+  - relude
+  - ansi-terminal
+  - async
+  - containers
+  - hxt
+  - patience
+  - plist
+  - prettyprinter
+  - prettyprinter-ansi-terminal
+  - process
+  - text
 
 executables:
   prefmanager:
@@ -39,6 +41,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - prefmanager
+    - optparse-applicative
 
 tests:
   prefmanager-test:

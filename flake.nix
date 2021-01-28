@@ -32,8 +32,10 @@
         packages = [
           compiler.haskell-language-server
           compiler.implicit-hie
+          compiler.weeder
           pkgs.cabal2nix
           pkgs.stack
+          pkgs.hlint
         ];
         commands = [
           {

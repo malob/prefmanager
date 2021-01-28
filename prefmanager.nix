@@ -1,6 +1,6 @@
-{ mkDerivation, async, base, containers, hpack, hxt
-, optparse-applicative, patience, plist, prettyprinter
-, prettyprinter-ansi-terminal, process, stdenv, text
+{ mkDerivation, ansi-terminal, async, base-noprelude, containers
+, hpack, hxt, optparse-applicative, patience, plist, prettyprinter
+, prettyprinter-ansi-terminal, process, relude, stdenv, text
 }:
 mkDerivation {
   pname = "prefmanager";
@@ -9,18 +9,12 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    async base containers hxt optparse-applicative patience plist
-    prettyprinter prettyprinter-ansi-terminal process text
+    ansi-terminal async base-noprelude containers hxt patience plist
+    prettyprinter prettyprinter-ansi-terminal process relude text
   ];
   libraryToolDepends = [ hpack ];
-  executableHaskellDepends = [
-    async base containers hxt optparse-applicative patience plist
-    prettyprinter prettyprinter-ansi-terminal process text
-  ];
-  testHaskellDepends = [
-    async base containers hxt optparse-applicative patience plist
-    prettyprinter prettyprinter-ansi-terminal process text
-  ];
+  executableHaskellDepends = [ base-noprelude optparse-applicative ];
+  testHaskellDepends = [ base-noprelude ];
   prePatch = "hpack";
   homepage = "https://github.com/malob/prefmanager#readme";
   description = "A CLI utility for managing macOS preferences";

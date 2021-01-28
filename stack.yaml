@@ -6,9 +6,12 @@ packages:
 
 extra-deps:
 - patience-0.3
+- base-noprelude-4.13.0.0
 # Use fork of plist package that supports MonadFail
 - github: malob/plist
   commit: 5e22be0933bf9a100868b944fa7a8b1236b99255
+
+allow-newer: true
 
 nix:
   shell-file: ./stack.nix
