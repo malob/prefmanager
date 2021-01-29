@@ -1,4 +1,4 @@
-name: "Nix Build and Cache"
+name: "Build and Cache"
 on:
   pull_request:
   push:
@@ -22,8 +22,19 @@ jobs:
         name: malo
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
-    - name: Build and cache
+    - name: Nix Flakes
       run: |
-        nix build .
-        nix run . -- --help
-        nix develop .
+        nix --print-build-logs build .
+        nix --print-build-logs run . -- --help
+        nix --print-build-logs develop . --print-build-logs
+
+    - name: Nix Legacy
+      run: |
+        nix-build default.nix
+        nix-shell shell.nix
+
+    - name: Stack
+      run: |
+        stack build
+        stack purge
+        nix-shell shell.nix --run 'stack --nix build'
