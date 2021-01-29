@@ -28,8 +28,8 @@ library:
   - plist
   - prettyprinter
   - prettyprinter-ansi-terminal
-  - process
   - text
+  - typed-process
 
 executables:
   prefmanager:

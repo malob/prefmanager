@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a8cff5464ff5ded24a399492c6be76412d42e1e21780bb40565735f140afab2
+-- hash: f6c3525e0baa5d12b8726a3fb2e8555c5e71a4604b8cccf146af041be3186c93
 
 name:           prefmanager
 version:        0.1.0.0
@@ -46,9 +46,9 @@ library
     , plist
     , prettyprinter
     , prettyprinter-ansi-terminal
-    , process
     , relude
     , text
+    , typed-process
   default-language: Haskell2010
 
 executable prefmanager

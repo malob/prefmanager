@@ -16,13 +16,13 @@ import Patience.Map (diff, isSame, toDelta)
 import Prettyprinter.Render.Terminal (putDoc)
 import System.Console.ANSI (clearLine, setCursorColumn)
 import System.IO (hFlush)
-import System.Process (shell, readCreateProcess)
 import Text.XML.HXT.Core (no, withSubstDTDEntities, withValidate)
 import Text.XML.Plist (PlObject, fromPlDict, readPlistFromString)
+import System.Process.Typed (shell, readProcessStdout_)
 
 -- | Convenience function for running macOS @defaults@ command.
 defaultsCmd :: Text -> IO Text
-defaultsCmd (toString -> t) = toText <$> readCreateProcess (shell $ "/usr/bin/defaults " <> t) ""
+defaultsCmd (toString -> t) = decodeUtf8 <$> readProcessStdout_ (shell $ "/usr/bin/defaults " <> t)
 
 -- | Convenience function for parsing Plist strings
 parsePlist :: Text -> IO PlObject

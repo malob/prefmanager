@@ -1,6 +1,6 @@
 { mkDerivation, ansi-terminal, async, base-noprelude, containers
 , hpack, hxt, optparse-applicative, patience, plist, prettyprinter
-, prettyprinter-ansi-terminal, process, relude, stdenv, text
+, prettyprinter-ansi-terminal, relude, stdenv, text, typed-process
 }:
 mkDerivation {
   pname = "prefmanager";
@@ -10,7 +10,7 @@ mkDerivation {
   isExecutable = true;
   libraryHaskellDepends = [
     ansi-terminal async base-noprelude containers hxt patience plist
-    prettyprinter prettyprinter-ansi-terminal process relude text
+    prettyprinter prettyprinter-ansi-terminal relude text typed-process
   ];
   libraryToolDepends = [ hpack ];
   executableHaskellDepends = [ base-noprelude optparse-applicative ];
