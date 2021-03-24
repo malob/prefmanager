@@ -1,5 +1,5 @@
-# GHC 8.10.3
-resolver: nightly-2021-01-20
+# GHC 8.10.4
+resolver: lts-17.7
 
 packages:
 - .
@@ -14,4 +14,5 @@ extra-deps:
 allow-newer: true
 
 nix:
+  pure: true
   shell-file: ./stack.nix

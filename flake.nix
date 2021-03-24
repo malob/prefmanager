@@ -12,7 +12,7 @@
   outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
     flake-utils.lib.eachSystem [ "x86_64-darwin" ] (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      compiler =  pkgs.haskell.packages.ghc8103;
+      compiler =  pkgs.haskell.packages.ghc8104;
       hlib = pkgs.haskell.lib;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
       prefmanager = compiler.callPackage ./prefmanager.nix { inherit plist; };

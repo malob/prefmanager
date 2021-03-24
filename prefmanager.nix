@@ -1,6 +1,7 @@
 { mkDerivation, ansi-terminal, async, base-noprelude, containers
-, hpack, hxt, optparse-applicative, patience, plist, prettyprinter
-, prettyprinter-ansi-terminal, relude, stdenv, text, typed-process
+, hpack, hxt, lib, optparse-applicative, patience, plist
+, prettyprinter, prettyprinter-ansi-terminal, relude, text
+, typed-process
 }:
 mkDerivation {
   pname = "prefmanager";
@@ -18,5 +19,5 @@ mkDerivation {
   prePatch = "hpack";
   homepage = "https://github.com/malob/prefmanager#readme";
   description = "A CLI utility for managing macOS preferences";
-  license = stdenv.lib.licenses.bsd3;
+  license = lib.licenses.bsd3;
 }
