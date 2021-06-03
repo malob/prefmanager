@@ -24,6 +24,7 @@ jobs:
 
     - name: Nix Flakes
       run: |
+        nix show-config
         nix --print-build-logs build .
         nix --print-build-logs run . -- --help
         nix --print-build-logs develop . --print-build-logs
