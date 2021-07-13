@@ -2,7 +2,7 @@
   description = "Tool for working with macOS defaults.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devshell.url = "github:numtide/devshell/";
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
     flake-utils.url = "github:numtide/flake-utils";
@@ -15,7 +15,7 @@
       compiler =  pkgs.haskell.packages.ghc8104;
       hlib = pkgs.haskell.lib;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
-      prefmanager = compiler.callPackage ./prefmanager.nix { inherit plist; };
+      prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
       mkShell = devshell.legacyPackages.${system}.mkShell;
     in rec {
       # Built by `nix build .`
