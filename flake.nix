@@ -7,15 +7,18 @@
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
     flake-utils.url = "github:numtide/flake-utils";
     plist-source = { url = "github:malob/plist/monadfail"; flake = false; };
+    relude-source = { url = "github:kowainik/relude"; flake = false; };
   };
 
-  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
+  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, relude-source, ... }:
     flake-utils.lib.eachSystem [ "x86_64-darwin" ] (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      compiler =  pkgs.haskell.packages.ghc8107;
+      compiler =  pkgs.haskell.packages.ghc901;
       hlib = pkgs.haskell.lib;
+      microbase = hlib.markUnbroken compiler.microbase;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
-      prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
+      relude = hlib.markUnbroken (hlib.overrideSrc compiler.relude { src = relude-source; });
+      prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist microbase relude; };
       mkShell = devshell.legacyPackages.${system}.mkShell;
     in rec {
       # Built by `nix build .`
@@ -32,7 +35,7 @@
         packages = [
           compiler.haskell-language-server
           compiler.implicit-hie
-          compiler.weeder
+          # compiler.weeder
           pkgs.cabal2nix
           pkgs.stack
           pkgs.hlint

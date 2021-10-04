@@ -9,13 +9,11 @@ import Defaults.Types (DomainDiff(..), Domains(..), Domain(..), DomainName(..), 
 import Relude.Extra (un, wrap, traverseToSnd, keys)
 
 import Control.Concurrent.Async (mapConcurrently)
-import Data.List (delete)
 import qualified Data.Map.Strict as M
 import Data.Text (stripEnd, splitOn)
 import Patience.Map (diff, isSame, toDelta)
 import Prettyprinter.Render.Terminal (putDoc)
 import System.Console.ANSI (clearLine, setCursorColumn)
-import System.IO (hFlush)
 import Text.XML.HXT.Core (no, withSubstDTDEntities, withValidate)
 import Text.XML.Plist (PlObject, fromPlDict, readPlistFromString)
 import System.Process.Typed (shell, readProcessStdout_)

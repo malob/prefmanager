@@ -12,12 +12,12 @@ packages:
   original:
     hackage: patience-0.3
 - completed:
-    hackage: base-noprelude-4.13.0.0@sha256:3cccbfda38e1422ca5cc436d58858ba51ff9114d2ed87915a6569be11e4e5a90,6842
+    hackage: microbase-4.15.0.0.1@sha256:bace55f010824ee17050d20fb687740d34147a76e4d72c86b9da448df4415c0f,1804
     pantry-tree:
-      size: 112
-      sha256: 90db92c8401880187ce642c5345407bcbd9546ea235524dd445cab2566ee3db1
+      size: 60
+      sha256: ad4940f259572ed7dbf21be01fd7a29f9685441ac49744a8a9127e3c10a866ff
   original:
-    hackage: base-noprelude-4.13.0.0
+    hackage: microbase-4.15.0.0.1
 - completed:
     size: 4351
     url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
@@ -31,7 +31,7 @@ packages:
     url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
 snapshots:
 - completed:
-    size: 586041
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/12.yaml
-    sha256: 80fc6391195ff00c36f2a605ecbb07de909bfaa2eaa9722a27e486a6ecf8ecb0
-  original: lts-18.12
+    size: 583797
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/10/2.yaml
+    sha256: fced6aa8f1be739278e89b9e1e7b6d3acdbb0369fba8c64eac042257dc8c15bf
+  original: nightly-2021-10-02

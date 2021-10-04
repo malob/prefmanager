@@ -79,13 +79,30 @@
         "type": "github"
       }
     },
+    "relude-source": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1629544882,
+        "narHash": "sha256-YT0rJNONdXcx6Mdnp+z9OphmTSg1hJoHDJhig96KCVE=",
+        "owner": "kowainik",
+        "repo": "relude",
+        "rev": "6eee82e5812f8d14bfab2e11c48d44ce73a9c59a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kowainik",
+        "repo": "relude",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "devshell": "devshell",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "plist-source": "plist-source"
+        "plist-source": "plist-source",
+        "relude-source": "relude-source"
       }
     }
   },

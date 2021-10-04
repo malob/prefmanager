@@ -1,12 +1,12 @@
-# GHC 8.10.7
-resolver: lts-18.12
+# GHC 9.0.1
+resolver: nightly-2021-10-02
 
 packages:
 - .
 
 extra-deps:
 - patience-0.3
-- base-noprelude-4.13.0.0
+- microbase-4.15.0.0.1
 # Use fork of plist package that supports MonadFail
 - github: malob/plist
   commit: 5e22be0933bf9a100868b944fa7a8b1236b99255
