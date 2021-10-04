@@ -11,6 +11,3 @@ cradle:
 
     - path: "./test"
       component: "prefmanager:test:prefmanager-test"
-
-    - path: "./property-list-0.1.0.5/src"
-      component: "property-list:lib"
