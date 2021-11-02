@@ -10,7 +10,7 @@
   };
 
   outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-darwin" ] (system: let
+    flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       compiler =  pkgs.haskell.packages.ghc8107;
       hlib = pkgs.haskell.lib;
