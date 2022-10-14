@@ -1,5 +1,5 @@
-# GHC 8.10.7
-resolver: lts-19.5
+# GHC 9.0.2
+resolver: lts-19.28
 
 extra-deps:
 - patience-0.3
@@ -8,7 +8,7 @@ extra-deps:
 - github: malob/plist
   commit: 5e22be0933bf9a100868b944fa7a8b1236b99255
 
-allow-newer: true
+# allow-newer: true
 
 nix:
   pure: true

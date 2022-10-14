@@ -18,7 +18,7 @@
       hlib = pkgs.haskell.lib;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
       prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
-      mkShell = devshell.legacyPackages.${system}.mkShell;
+      inherit (devshell.legacyPackages.${system}) mkShell;
     in rec {
       # Built by `nix build .`
       packages.default = prefmanager;
