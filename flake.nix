@@ -30,7 +30,7 @@
         packages = [
           compiler.haskell-language-server
           compiler.implicit-hie
-          compiler.weeder
+          # compiler.weeder
           pkgs.stack
           pkgs.hlint
         ];
