@@ -8,7 +8,7 @@ extra-deps:
 - github: malob/plist
   commit: 5e22be0933bf9a100868b944fa7a8b1236b99255
 
-# allow-newer: true
+allow-newer: true
 
 nix:
   pure: true
