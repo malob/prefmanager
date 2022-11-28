@@ -11,21 +11,26 @@
     devshell.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system: let
+  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }: {
+    overlays.prefmanager = _: prev: {
+      inherit (self.packages.${prev.stdenv.system}) prefmanager;
+    };
+  } // flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system:
+    let
       pkgs = nixpkgs.legacyPackages.${system};
-      compiler =  pkgs.haskell.packages.ghc902;
+      compiler = pkgs.haskell.packages.ghc902;
       hlib = pkgs.haskell.lib;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
       prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
       inherit (devshell.legacyPackages.${system}) mkShell;
-    in rec {
+    in
+    {
       # Built by `nix build .`
       packages.default = prefmanager;
       packages.prefmanager = prefmanager;
 
       # # This is used by `nix develop .`
-      devShell = mkShell {
+      devShells.default = mkShell {
         name = "prefmanager";
         packages = [
           compiler.haskell-language-server
