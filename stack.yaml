@@ -1,5 +1,5 @@
-# GHC 9.0.2
-resolver: lts-19.28
+# GHC 9.2.6
+resolver: lts-20.12
 
 extra-deps:
 - patience-0.3

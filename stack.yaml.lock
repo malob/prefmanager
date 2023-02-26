@@ -31,7 +31,7 @@ packages:
     url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
 snapshots:
 - completed:
-    sha256: 7f4393ad659c579944d12202cffb12d8e4b8114566b015f77bbc303a24cff934
-    size: 619405
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/28.yaml
-  original: lts-19.28
+    sha256: af5d667f6096e535b9c725a72cffe0f6c060e0568d9f9eeda04caee70d0d9d2d
+    size: 649133
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/12.yaml
+  original: lts-20.12

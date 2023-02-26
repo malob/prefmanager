@@ -18,7 +18,7 @@
   } // flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      compiler = pkgs.haskell.packages.ghc902;
+      compiler = pkgs.haskell.packages.ghc926;
       hlib = pkgs.haskell.lib;
       plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
       prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
