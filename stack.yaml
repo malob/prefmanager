@@ -1,5 +1,5 @@
-# GHC 9.2.7
-resolver: lts-20.23
+# GHC 9.2.8
+resolver: lts-20.26
 
 extra-deps:
 - patience-0.3
@@ -11,5 +11,5 @@ extra-deps:
 allow-newer: true
 
 nix:
-  pure: true
+  # pure: true
   shell-file: ./stack.nix
