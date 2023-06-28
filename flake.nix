@@ -10,43 +10,63 @@
     devshell.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }: {
-    overlays.prefmanager = _: prev: {
-      inherit (self.packages.${prev.stdenv.system}) prefmanager;
-    };
-  } // flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system:
+  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
-      compiler = pkgs.haskell.packages.ghc928;
-      hlib = pkgs.haskell.lib;
-      plist = hlib.markUnbroken (hlib.overrideSrc compiler.plist { src = plist-source; });
-      prefmanager = compiler.callCabal2nix "prefmanager" ./. { inherit plist; };
-      inherit (devshell.legacyPackages.${system}) mkShell;
+      inherit (import ./constants.nix) name ghcVersions defaultGhcVersion;
     in
     {
-      # Built by `nix build .`
-      packages.default = prefmanager;
-      packages.prefmanager = prefmanager;
+      overlays.${name} = final: prev: {
+        haskell = prev.haskell // {
+          packageOverrides = final.lib.composeExtensions
+            prev.haskell.packageOverrides
+            (hfinal: hprev: {
+              plist = final.haskell.lib.markUnbroken (final.haskell.lib.overrideSrc hprev.plist {
+                src = plist-source;
+              });
+              ${name} = hfinal.callCabal2nix name ./. { };
+            });
+        };
 
-      # # This is used by `nix develop .`
-      devShells.default = mkShell {
-        name = "prefmanager";
-        packages = [
-          compiler.haskell-language-server
-          compiler.implicit-hie
-          # compiler.weeder
-          pkgs.stack
-          pkgs.hlint
-        ];
-        commands = [
-          {
-            help = "Regenerate hie.yaml (run from project root)";
-            name = "hie";
-            category = "project";
-            command = "gen-hie > hie.yaml";
-          }
-        ];
+        ${name} = final.haskell.packages.${defaultGhcVersion}.${name};
       };
-    }
-  );
+    } // flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system:
+      let
+        pkgs = import nixpkgs { inherit system; overlays = [ self.overlays.${name} ]; };
+      in
+      {
+        packages = {
+          default = pkgs.${name};
+          ${name} = pkgs.${name};
+
+          # Create package for all `ghcVersions`.
+        } // builtins.listToAttrs (map
+          (v: { name = "${name}-${v}"; value = pkgs.haskell.packages.${v}.${name}; })
+          ghcVersions
+        );
+
+        devShells.default = devshell.legacyPackages.${system}.mkShell {
+          inherit name;
+
+          packages = builtins.attrValues {
+            inherit (pkgs.haskell.packages.${defaultGhcVersion})
+              haskell-language-server
+              hlint
+              implicit-hie
+              weeder
+              ;
+
+            inherit (pkgs) stack;
+          };
+
+          commands = [
+            {
+              help = "Regenerate hie.yaml (run from project root)";
+              name = "hie";
+              category = "project";
+              command = "gen-hie > hie.yaml";
+            }
+          ];
+        };
+      }
+    );
 }
