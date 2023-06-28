@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.3.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f6c3525e0baa5d12b8726a3fb2e8555c5e71a4604b8cccf146af041be3186c93
+-- hash: 4bc817bf57fae042a1b016e58f5362763ec47db040b12f0912db03d7ad80580f
 
 name:           prefmanager
 version:        0.1.0.0
@@ -39,6 +39,7 @@ library
   build-depends:
       ansi-terminal
     , async
+    , async-pool
     , base-noprelude
     , containers
     , hxt

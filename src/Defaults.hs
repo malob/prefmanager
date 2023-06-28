@@ -9,6 +9,7 @@ import Defaults.Types (DomainDiff(..), Domains(..), Domain(..), DomainName(..), 
 import Relude.Extra (un, wrap, traverseToSnd, keys)
 
 import Control.Concurrent.Async (mapConcurrently)
+import Control.Concurrent.Async.Pool (withTaskGroup, async, wait)
 import Data.List (delete)
 import qualified Data.Map.Strict as M
 import Data.Text (stripEnd, splitOn)
@@ -46,9 +47,14 @@ export d
   .   fromPlDict
   <$> (defaultsCmd ("export '" <> un d <> "' -") >>= parsePlist)
 
--- | Runs 'export' on the 'Set' of provided domains
+-- | Runs 'export' on the 'Set' of provided domains.
+--
+-- Uses a thread pool to run the exports in parallel with a limit of 100 threads to ensure we don't
+-- run out of file descriptors. This limit is somewhat arbitrary.
 exports :: Set DomainName -> IO Domains
-exports = wrap . fmap (fromList @(Map _ _)) . mapConcurrently (traverseToSnd export) . toList
+exports ds = withTaskGroup 100 $ \tg -> do
+  results <- forM (toList ds) $ \d -> async tg $ traverseToSnd export d
+  wrap . fromList @(Map _ _) <$> mapM wait results
 
 diffDomain :: Domain -> Domain -> DomainDiff
 diffDomain (Domain old) (Domain new) = wrap $ M.filter (not . isSame) $ diff old new

@@ -22,6 +22,7 @@ library:
   - relude
   - ansi-terminal
   - async
+  - async-pool
   - containers
   - hxt
   - patience

@@ -11,5 +11,5 @@ extra-deps:
 allow-newer: true
 
 nix:
-  # pure: true
+  pure: true
   shell-file: ./stack.nix
