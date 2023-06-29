@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4bc817bf57fae042a1b016e58f5362763ec47db040b12f0912db03d7ad80580f
+-- hash: 4f3ba99c73e2d565d8ad37f7906383a7069cf9a60542054cce281b52138c5c6c
 
 name:           prefmanager
 version:        0.1.0.0
@@ -63,6 +63,7 @@ executable prefmanager
       base-noprelude
     , optparse-applicative
     , prefmanager
+    , relude
   default-language: Haskell2010
 
 test-suite prefmanager-test

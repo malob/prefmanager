@@ -42,6 +42,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - prefmanager
+    - relude
     - optparse-applicative
 
 tests:

@@ -5,6 +5,8 @@ import Defaults
 import Defaults.Types (DomainName(..))
 
 import Options.Applicative
+import Relude.Extra (un)
+import Data.Text (unpack)
 
 -- | Main
 main :: IO ()
@@ -25,6 +27,7 @@ commands = hsubparser
                (DomainName <$> strArgument
                  (  metavar "DOMAIN..."
                  <> help "Domain(s) that will be watched."
+                 <> completer domainCompleter
                  )
                )
          <|> flag' (watch =<< domains)
@@ -45,8 +48,11 @@ commands = hsubparser
          (printKeys . DomainName <$> strArgument
            (  metavar "DOMAIN"
            <> help "A domain for which to list keys."
+           <> completer domainCompleter
            )
          )
          $ progDesc "List the current keys in a domain."
        )
   )
+    where
+      domainCompleter = listIOCompleter $ fmap (fmap unpack . un . toList) domains
