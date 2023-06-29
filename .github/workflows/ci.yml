@@ -80,21 +80,3 @@ jobs:
       - name: Build and test
         run: |
           stack run -- domains
-
-  stack-build-nix:
-    name: Stack build w/ Nix
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-
-      - name: Setup cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Build and test
-        run: |
-          stack run --nix -- domains
