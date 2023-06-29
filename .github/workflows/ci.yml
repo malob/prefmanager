@@ -1,39 +1,82 @@
-name: "Build and Cache"
+name: CI
+
 on:
   pull_request:
   push:
+
 jobs:
-  build-and-cache:
-    runs-on: macos-latest
+  matrix:
+    name: Generate matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen-matrix.outputs.matrix }}
+
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Install Nix
-      uses: cachix/install-nix-action@v22
-      with:
-        extra_nix_config: |
-          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
 
-    - name: Setup Cachix
-      uses: cachix/cachix-action@v12
-      with:
-        name: malo
-        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+      - name: Genrate matrix
+        id: gen-matrix
+        run: |
+          echo "matrix=$(nix eval --impure --json --expr '(import ./constants.nix).ghcVersions')" \
+            >> $GITHUB_OUTPUT
 
-    - name: Nix Flakes
-      run: |
-        nix -L build .
-        nix -L run . -- --help
-        nix -L develop .
+  nix-build-packages:
+    needs: matrix
+    runs-on: macos-latest
 
-    - name: Nix Legacy
-      run: |
-        nix-build default.nix
-        nix-shell shell.nix
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc:  ${{ fromJson(needs.matrix.outputs.matrix) }}
 
-    - name: Stack
-      run: |
-        stack build
-        stack purge
-        nix-shell shell.nix --run 'stack --nix build'
+    name: Nix build (${{ matrix.ghc }})
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Setup cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build and test
+        run: |
+          NAME=$(nix eval --impure --raw --expr '(import ./constants.nix).name')-${{ matrix.ghc }}
+          nix -L build .#$NAME
+          nix run .#$NAME -- domains
+
+  stack-build:
+    name: Stack build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build and test
+        run: |
+          stack run -- domains
+
+  stack-build-nix:
+    name: Stack build w/ Nix
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Setup cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build and test
+        run: |
+          stack run --nix -- domains
