@@ -23,7 +23,9 @@
               plist = final.haskell.lib.markUnbroken (final.haskell.lib.overrideSrc hprev.plist {
                 src = plist-source;
               });
-              ${name} = hfinal.callCabal2nix name ./. { };
+              ${name} = hfinal.generateOptparseApplicativeCompletions
+                [ name ]
+                (hfinal.callCabal2nix name ./. { });
             });
         };
 
