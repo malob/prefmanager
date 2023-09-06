@@ -1,10 +1,11 @@
-# GHC 9.2.8
+# GHC 9.4.6
 # Keep in sync with `defaultGhcVersion` in `./constants.nix`.
-resolver: lts-20.26
+resolver: lts-21.9
 
 extra-deps:
-- patience-0.3
+- async-pool-0.9.2
 - base-noprelude-4.13.0.0
+- patience-0.3
 # Use fork of plist package that supports MonadFail
 - github: malob/plist
   commit: 5e22be0933bf9a100868b944fa7a8b1236b99255

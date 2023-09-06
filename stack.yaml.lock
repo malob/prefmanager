@@ -5,12 +5,12 @@
 
 packages:
 - completed:
-    hackage: patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
+    hackage: async-pool-0.9.2@sha256:532b356a3a2d3e6ec848ca266b566f8cf60c52a107f4b2c7e690cdd2b1ae67b2,1605
     pantry-tree:
-      sha256: d2ca47451a599605c641b7c353588d7e1ba3d6036c8a52040b7d1b5b1af8959b
-      size: 368
+      sha256: 292aaab710c67c190ef87703f7a300a3cad71ee71d2cdf2a9e89d242e866d174
+      size: 443
   original:
-    hackage: patience-0.3
+    hackage: async-pool-0.9.2
 - completed:
     hackage: base-noprelude-4.13.0.0@sha256:3cccbfda38e1422ca5cc436d58858ba51ff9114d2ed87915a6569be11e4e5a90,6842
     pantry-tree:
@@ -18,6 +18,13 @@ packages:
       size: 112
   original:
     hackage: base-noprelude-4.13.0.0
+- completed:
+    hackage: patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
+    pantry-tree:
+      sha256: d2ca47451a599605c641b7c353588d7e1ba3d6036c8a52040b7d1b5b1af8959b
+      size: 368
+  original:
+    hackage: patience-0.3
 - completed:
     name: plist
     pantry-tree:
@@ -31,7 +38,7 @@ packages:
     url: https://github.com/malob/plist/archive/5e22be0933bf9a100868b944fa7a8b1236b99255.tar.gz
 snapshots:
 - completed:
-    sha256: 5a59b2a405b3aba3c00188453be172b85893cab8ebc352b1ef58b0eae5d248a2
-    size: 650475
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/26.yaml
-  original: lts-20.26
+    sha256: 2fc12a405ab6f7eac73eb11a0ca5ccca0e956bd2848db780c140b7406ff9ebb5
+    size: 640035
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/9.yaml
+  original: lts-21.9
