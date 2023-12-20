@@ -1,6 +1,6 @@
-# GHC 9.4.6
+# GHC 9.4.8
 # Keep in sync with `defaultGhcVersion` in `./constants.nix`.
-resolver: lts-21.9
+resolver: lts-21.25
 
 extra-deps:
 - async-pool-0.9.2
