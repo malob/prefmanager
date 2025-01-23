@@ -42,9 +42,6 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v10
 
-      - name: Setup cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
-
       - name: Build and test
         run: |
           NAME=$(nix eval --impure --raw --expr '(import ./constants.nix).name')-${{ matrix.ghc }}
@@ -61,9 +58,6 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v10
-
-      - name: Setup cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Build and test
         run: |
