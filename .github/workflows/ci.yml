@@ -18,6 +18,11 @@ jobs:
     name: Nix build (${{ matrix.attr }})
     runs-on: macos-latest
 
+    # `id-token: write` is required by magic-nix-cache-action.
+    permissions:
+      contents: read
+      id-token: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +37,9 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
 
+      - name: Set up Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+
       - name: Build
         run: nix -L build .#${{ matrix.attr }}
 
@@ -45,12 +53,19 @@ jobs:
     name: Nix devshell
     runs-on: macos-latest
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
+
+      - name: Set up Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Build devshell
         run: nix -L develop . --command echo OK
