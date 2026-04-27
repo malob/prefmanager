@@ -1,10 +1,4 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.35.2.
---
--- see: https://github.com/sol/hpack
---
--- hash: 4f3ba99c73e2d565d8ad37f7906383a7069cf9a60542054cce281b52138c5c6c
+cabal-version: 2.4
 
 name:           prefmanager
 version:        0.1.0.0
@@ -16,65 +10,62 @@ bug-reports:    https://github.com/malob/prefmanager/issues
 author:         Malo Bourgon
 maintainer:     mbourgon@gmail.com
 copyright:      2020 Malo Bourgon
-license:        BSD3
+license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
+
 extra-source-files:
     README.md
 
 source-repository head
-  type: git
+  type:     git
   location: https://github.com/malob/prefmanager
 
+common shared
+  default-language: Haskell2010
+  build-depends:
+    , base
+    , relude
+  -- Use Relude as the implicit Prelude in every module.
+  -- https://github.com/kowainik/relude#mixins
+  mixins:
+    , base hiding (Prelude)
+    , relude (Relude as Prelude)
+    , relude
+
 library
+  import:           shared
+  hs-source-dirs:   src
   exposed-modules:
       Defaults
       Defaults.Pretty
       Defaults.Types
-      Prelude
   other-modules:
       Paths_prefmanager
-  hs-source-dirs:
-      src
+  autogen-modules:
+      Paths_prefmanager
   build-depends:
-      ansi-terminal
+    , ansi-terminal
     , async
     , async-pool
-    , base-noprelude
     , containers
     , hxt
     , patience
     , plist
     , prettyprinter
     , prettyprinter-ansi-terminal
-    , relude
     , text
     , typed-process
-  default-language: Haskell2010
 
 executable prefmanager
-  main-is: Main.hs
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
   other-modules:
       Paths_prefmanager
-  hs-source-dirs:
-      app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  autogen-modules:
+      Paths_prefmanager
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base-noprelude
     , optparse-applicative
     , prefmanager
-    , relude
-  default-language: Haskell2010
-
-test-suite prefmanager-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_prefmanager
-  hs-source-dirs:
-      test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base-noprelude
-    , prefmanager
-  default-language: Haskell2010

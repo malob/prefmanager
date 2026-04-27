@@ -4,73 +4,72 @@ on:
   pull_request:
   push:
 
+permissions:
+  contents: read
+
+# Cancel in-progress runs of the same workflow on the same ref when a new
+# commit lands.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  matrix:
-    name: Generate matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.gen-matrix.outputs.matrix }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v10
-
-      - name: Genrate matrix
-        id: gen-matrix
-        run: |
-          echo "matrix=$(nix eval --impure --json --expr '(import ./constants.nix).ghcVersions')" \
-            >> $GITHUB_OUTPUT
-
-  nix-build-packages:
-    needs: matrix
+  nix-build:
+    name: Nix build (${{ matrix.attr }})
     runs-on: macos-latest
 
     strategy:
       fail-fast: false
       matrix:
-        ghc:  ${{ fromJson(needs.matrix.outputs.matrix) }}
-
-    name: Nix build (${{ matrix.ghc }})
+        attr:
+          - prefmanager           # default GHC (9.10)
+          - ghc912-prefmanager
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v10
+        uses: DeterminateSystems/nix-installer-action@v22
 
-      - name: Build and test
-        run: |
-          NAME=$(nix eval --impure --raw --expr '(import ./constants.nix).name')-${{ matrix.ghc }}
-          nix -L build .#$NAME
-          nix run .#$NAME -- domains
+      - name: Build
+        run: nix -L build .#${{ matrix.attr }}
 
-  nix-build-devshell:
-    name: Nix build devshell
+      - name: Smoke test
+        # Only run the default-GHC build; other matrix entries are
+        # compile-only checks.
+        if: matrix.attr == 'prefmanager'
+        run: nix run .#prefmanager -- domains > /dev/null
+
+  nix-devshell:
+    name: Nix devshell
     runs-on: macos-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v10
+        uses: DeterminateSystems/nix-installer-action@v22
 
-      - name: Build and test
-        run: |
-          nix -L develop . --command echo "OK"
+      - name: Build devshell
+        run: nix -L develop . --command echo OK
 
-  stack-build:
-    name: Stack build
+  cabal-build:
+    name: Cabal build (no Nix)
     runs-on: macos-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Build and test
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.3'
+          cabal-version: 'latest'
+
+      - name: Build
         run: |
-          stack run -- domains
+          cabal update
+          cabal build

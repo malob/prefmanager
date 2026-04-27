@@ -3,72 +3,42 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    devshell.url = "github:numtide/devshell/";
-    flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
-    flake-utils.url = "github:numtide/flake-utils";
-    plist-source = { url = "github:malob/plist/monadfail"; flake = false; };
-    devshell.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
+
+    haskell-flake.url = "github:srid/haskell-flake";
+
+    # Fork of `plist` that supports MonadFail; upstream is unmaintained.
+    plist-source = {
+      url = "github:malob/plist/monadfail";
+      flake = false;
+    };
   };
 
-  outputs = { self, devshell, nixpkgs, flake-utils, plist-source, ... }:
-    let
-      inherit (import ./constants.nix) name ghcVersions defaultGhcVersion;
-    in
-    {
-      overlays.${name} = final: prev: {
-        haskell = prev.haskell // {
-          packageOverrides = final.lib.composeExtensions
-            prev.haskell.packageOverrides
-            (hfinal: hprev: {
-              plist = final.haskell.lib.markUnbroken (final.haskell.lib.overrideSrc hprev.plist {
-                src = plist-source;
-              });
-              ${name} = hfinal.generateOptparseApplicativeCompletions
-                [ name ]
-                (hfinal.callCabal2nix name ./. { });
-            });
-        };
+  outputs = inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-darwin" "aarch64-darwin" ];
 
-        ${name} = final.haskell.packages.${defaultGhcVersion}.${name};
-      };
-    } // flake-utils.lib.eachSystem [ "x86_64-darwin" "aarch64-darwin" ] (system:
-      let
-        pkgs = import nixpkgs { inherit system; overlays = [ self.overlays.${name} ]; };
-      in
-      {
-        packages = {
-          default = pkgs.${name};
-          ${name} = pkgs.${name};
+      imports = [ inputs.haskell-flake.flakeModule ];
 
-          # Create package for all `ghcVersions`.
-        } // builtins.listToAttrs (map
-          (v: { name = "${name}-${v}"; value = pkgs.haskell.packages.${v}.${name}; })
-          ghcVersions
-        );
-
-        devShells.default = devshell.legacyPackages.${system}.mkShell {
-          inherit name;
-
-          packages = builtins.attrValues {
-            inherit (pkgs.haskell.packages.${defaultGhcVersion})
-              haskell-language-server
-              hlint
-              implicit-hie
-              weeder
-              ;
-
-            inherit (pkgs) stack;
+      perSystem = { pkgs, ... }:
+        let
+          mkProject = ghc: {
+            basePackages = pkgs.haskell.packages.${ghc};
+            packages.plist.source = inputs.plist-source;
+            settings.plist.broken = false;
           };
+        in
+        {
+          # Default project — exposes `nix build .#prefmanager`, `nix run .`, dev shell.
+          haskellProjects.default = mkProject "ghc910";
 
-          commands = [
-            {
-              help = "Regenerate hie.yaml (run from project root)";
-              name = "hie";
-              category = "project";
-              command = "gen-hie > hie.yaml";
-            }
-          ];
+          # Extra GHCs in the matrix — exposed as `nix build .#ghc912-prefmanager`, etc.
+          # Adding a new GHC = one new line here plus a CI matrix entry.
+          haskellProjects.ghc912 = mkProject "ghc912" // {
+            autoWire = [ "packages" ];
+          };
         };
-      }
-    );
+    };
 }
