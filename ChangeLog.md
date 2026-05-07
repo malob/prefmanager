@@ -22,6 +22,13 @@
 
 ## Unreleased changes
 
+- Dropped the `patience-map` (`patience`) dependency. `diffDomain` now
+  uses `Data.Map.Merge.Strict.merge` directly with a local 3-constructor
+  `Delta` ADT (`Old | New | Delta`) — no `Same` because the renderer
+  never used it. Behavior is unchanged. Side effect: GHC 9.14
+  (`containers >= 0.8`) is no longer blocked by `patience-0.3`'s
+  upper bound.
+
 - `watch` auto-switches to `--plain` when stdout is not a TTY (e.g.
   redirected to a file). Avoids leaking ANSI escape sequences into
   logs without needing the user to remember the flag.

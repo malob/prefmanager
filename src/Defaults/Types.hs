@@ -1,6 +1,5 @@
 module Defaults.Types where
 
-import Patience.Map (Delta)
 import Text.XML.Plist (PlObject)
 
 -- | Name of a domain, e.g., @NSGlobalDomain@, @com.apple.finder@, etc.
@@ -13,6 +12,15 @@ newtype Domain = Domain (Map Key PlObject) deriving (Eq, Ord, Show)
 
 -- | Map of domains.
 newtype Domains = Domains (Map DomainName Domain) deriving (Eq, Ord, Show)
+
+-- | Per-key change between two snapshots of a domain. We never produce
+-- a "same value" entry: 'diffDomain' uses 'Data.Map.Merge.Strict.merge'
+-- to skip equal values at construction time.
+data Delta a
+  = Delta !a !a  -- ^ key in both snapshots, values differ
+  | Old   !a     -- ^ key only in old snapshot (removed)
+  | New   !a     -- ^ key only in new snapshot (added)
+  deriving (Eq, Ord, Show)
 
 -- | Map representing the change of the values of keys of a domain.
 newtype DomainDiff = DomainDiff (Map Key (Delta PlObject)) deriving (Eq, Ord, Show)

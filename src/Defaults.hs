@@ -9,7 +9,8 @@ module Defaults where
 import Defaults.Filter (Filter, filterDomainSet, keyIsIgnored)
 import Defaults.Pretty (prettyWatchEvents)
 import Defaults.Types
-  (DomainDiff(..), Domains(..), Domain(..), DomainName(..), Key, WatchEvent(..))
+  ( Delta(..), DomainDiff(..), Domains(..), Domain(..), DomainName(..)
+  , Key, WatchEvent(..) )
 
 import Relude.Extra (un, wrap, traverseToSnd, keys)
 
@@ -20,6 +21,7 @@ import Control.Exception
   , catch, displayException, fromException, handleJust, throwIO, tryJust )
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map.Strict as M
+import qualified Data.Map.Merge.Strict as Merge
 import qualified Data.Set as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -28,7 +30,6 @@ import qualified Data.Text.IO as TIO
 import Data.Text (stripEnd, splitOn)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (getZonedTime)
-import Patience.Map (diff, isSame, toDelta)
 import Prettyprinter (Doc, layoutPretty, defaultLayoutOptions, unAnnotate)
 import qualified Prettyprinter.Render.Text as PRT
 import Prettyprinter.Render.Terminal (AnsiStyle, putDoc)
@@ -154,8 +155,17 @@ exportsTolerant ds = withTaskGroup 100 $ \tg -> do
     onlyDefaults :: SomeException -> Maybe DefaultsError
     onlyDefaults = fromException
 
+-- | Compute the per-key diff between two domain snapshots. Equal values
+-- are skipped at merge time so the result contains only @Old@, @New@,
+-- and @Delta@ entries — the full set of changes, with no inert entries
+-- to filter out afterwards.
 diffDomain :: Domain -> Domain -> DomainDiff
-diffDomain (Domain old) (Domain new) = wrap $ M.filter (not . isSame) $ diff old new
+diffDomain (Domain old) (Domain new) = DomainDiff $ Merge.merge
+  (Merge.mapMissing (\_ x -> Old x))
+  (Merge.mapMissing (\_ x -> New x))
+  (Merge.zipWithMaybeMatched
+     (\_ a b -> if a == b then Nothing else Just (Delta a b)))
+  old new
 
 -- | What 'watch' is targeting. Distinguishes a fixed user-named set from
 -- the @--all@ case where the live domain list is re-checked each poll so

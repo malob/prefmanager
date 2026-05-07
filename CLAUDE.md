@@ -146,10 +146,7 @@ introduce a new exception type.
 - **GHC 9.6 / 9.8** aren't currently in the `nixpkgs-unstable` binary cache
   for darwin (would require building GHC from source). They could be added
   back if the cache regains them, but it's not worth source-building.
-- **GHC 9.14** is blocked because `patience-0.3` declares
-  `containers >= 0.5.9 && < 0.8`, and GHC 9.14 ships containers-0.8. Adding
-  it would require a `settings.patience.jailbreak = true;` override
-  scoped to a `haskellProjects.ghc914` entry, *or* dropping the
-  `patience-map` dependency (planned — `Defaults.diffDomain` only uses
-  the four-way merge shape, which `Data.Map.Merge.Strict.merge` from
-  `containers` already provides).
+- *(no GHC compatibility blockers as of 0.2.x — the `patience` /
+  `containers < 0.8` issue was resolved by replacing `Patience.Map.diff`
+  with a local `Data.Map.Merge.Strict.merge`-based `diffDomain` in
+  `Defaults.hs`, dropping the `patience` dep entirely.)*

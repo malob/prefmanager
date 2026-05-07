@@ -2,14 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Defaults.Pretty where
 
-import Defaults.Types (Domain(..), DomainDiff(..), DomainName(..), Key, WatchEvent(..))
+import Defaults.Types
+  (Delta(..), Domain(..), DomainDiff(..), DomainName(..), Key, WatchEvent(..))
 
 import Prelude hiding (group)
 import Relude.Extra (un)
 
 import qualified Data.Map.Strict as M
 import Data.Map.Strict (foldMapWithKey)
-import Patience.Map (Delta(..))
 import Prettyprinter
 import Prettyprinter.Render.Terminal
 import Text.XML.Plist (PlObject(..))
@@ -72,10 +72,6 @@ prettyDomainDiff = foldMapWithKey go . un where
     Old x
       -> red
       $  pretty key <+> "(Key removed)"
-      <> hardline
-      <> indent 2 (pretty x)
-    Same x
-      -> pretty key <+> "(No change)"
       <> hardline
       <> indent 2 (pretty x)
   red = annotate $ colorDull Red
