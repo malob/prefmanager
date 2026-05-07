@@ -22,6 +22,17 @@
 
 ## Unreleased changes
 
+- `watch` auto-switches to `--plain` when stdout is not a TTY (e.g.
+  redirected to a file). Avoids leaking ANSI escape sequences into
+  logs without needing the user to remember the flag.
+- `watch` exits cleanly on broken pipes — `prefmanager watch | head`
+  no longer prints a Haskell traceback on pipe close.
+- `--plain` timestamps now use local time (via `getZonedTime`) rather
+  than UTC, matching the user's wall clock when correlating diffs
+  with System Settings actions.
+- `watch` exits with an error when the ignore filter leaves no
+  domains to watch (instead of polling silently forever).
+
 - New `--interval SECS` flag for `watch` controls the polling rate
   (default 1s, fractional values allowed, `0` preserves the previous
   spin-as-fast-as-possible behavior). Previously the watch loop polled

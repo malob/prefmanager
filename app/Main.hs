@@ -14,25 +14,35 @@ import Options.Applicative
 import Relude.Extra (un)
 import Data.Text (unpack)
 
-import Control.Exception (Exception, displayException, handle)
+import Control.Exception (Exception, IOException, displayException, handle, throwIO)
 import qualified Data.Text.IO as TIO
+import GHC.IO.Exception (IOErrorType(ResourceVanished))
+import System.IO (hIsTerminalDevice)
+import System.IO.Error (ioeGetErrorType)
 
 main :: IO ()
 main = runCommand =<< execParser opts
 
 -- | Run a chosen command with friendly error handling for our own typed
--- exceptions ('ConfigError', 'DefaultsError'). Async exceptions (Ctrl-C,
--- 'ThreadKilled') and any unexpected synchronous exceptions propagate so we
--- don't disguise bugs as user errors.
+-- exceptions ('ConfigError', 'DefaultsError') and a clean exit on broken
+-- pipes (e.g. when piping the watcher to @head@). Async exceptions
+-- (Ctrl-C, 'ThreadKilled') and any unexpected synchronous exceptions
+-- propagate so we don't disguise bugs as user errors.
 runCommand :: IO () -> IO ()
 runCommand =
-    handle (reportError @ConfigError)
+    handle handleBrokenPipe
+  . handle (reportError @ConfigError)
   . handle (reportError @DefaultsError)
   where
     reportError :: Exception e => e -> IO ()
     reportError e = do
       TIO.hPutStrLn stderr $ "Error: " <> toText (displayException e)
       exitFailure
+
+    handleBrokenPipe :: IOException -> IO ()
+    handleBrokenPipe e
+      | ioeGetErrorType e == ResourceVanished = exitSuccess
+      | otherwise = throwIO e
 
 opts :: ParserInfo (IO ())
 opts = info
@@ -69,8 +79,12 @@ watchCmd = run <$> plainParser <*> intervalParser <*> filterOptionsParser <*> ta
     run plain interval fopts target = do
       flt <- buildFilter fopts
       ds  <- target
+      -- Auto-switch to plain mode when stdout isn't a TTY (e.g. piped to
+      -- a file or another process). Avoids leaking ANSI escapes into
+      -- logs without making the user remember --plain.
+      tty <- hIsTerminalDevice stdout
       watch WatchOptions
-        { watchPlain    = plain
+        { watchPlain    = plain || not tty
         , watchInterval = interval
         , watchFilter   = flt
         } ds

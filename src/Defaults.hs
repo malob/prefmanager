@@ -23,8 +23,8 @@ import qualified Data.Text.Encoding as TE
 import Data.Text.Encoding.Error (lenientDecode)
 import qualified Data.Text.IO as TIO
 import Data.Text (stripEnd, splitOn)
-import Data.Time.Clock (getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
+import Data.Time.LocalTime (getZonedTime)
 import Patience.Map (diff, isSame, toDelta)
 import Prettyprinter (Doc, layoutPretty, defaultLayoutOptions, unAnnotate)
 import qualified Prettyprinter.Render.Text as PRT
@@ -165,6 +165,10 @@ data WatchOptions = WatchOptions
 watch :: WatchOptions -> Set DomainName -> IO ()
 watch WatchOptions{..} ds0 = do
   let ds = filterDomainSet watchFilter ds0
+  when (null ds) $ do
+    TIO.hPutStrLn stderr
+      "Error: filter rules left no domains to watch."
+    exitFailure
   -- Baseline export tolerates per-domain failures the same way the polling
   -- loop does; otherwise a transient failure during startup (most likely
   -- with --all) would crash before any "warning + carry forward" handling
@@ -219,7 +223,7 @@ watch WatchOptions{..} ds0 = do
       sleep
       goPlain ds new
 
-    timestamp = toText . formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" <$> getCurrentTime
+    timestamp = toText . formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S %Z" <$> getZonedTime
 
 renderPlain :: Doc AnsiStyle -> Text
 renderPlain = PRT.renderStrict . layoutPretty defaultLayoutOptions . unAnnotate
