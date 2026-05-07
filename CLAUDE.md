@@ -141,12 +141,16 @@ introduce a new exception type.
   entry that needs it.
 - **Don't use `import Relude` in source files.** The mixin handles it.
 
+## Current GHC matrix
+
+- **9.10** (default, `prefmanager`)
+- **9.12** (`ghc912-prefmanager`)
+- **9.14** (`ghc914-prefmanager`) — needs `settings.relude.check = false;`
+  in `flake.nix` because relude-1.2.2.2's doctests fail on the new
+  output format. The library itself builds clean.
+
 ## Known compatibility limits
 
 - **GHC 9.6 / 9.8** aren't currently in the `nixpkgs-unstable` binary cache
   for darwin (would require building GHC from source). They could be added
   back if the cache regains them, but it's not worth source-building.
-- *(no GHC compatibility blockers as of 0.2.x — the `patience` /
-  `containers < 0.8` issue was resolved by replacing `Patience.Map.diff`
-  with a local `Data.Map.Merge.Strict.merge`-based `diffDomain` in
-  `Defaults.hs`, dropping the `patience` dep entirely.)*

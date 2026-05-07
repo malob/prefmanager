@@ -29,6 +29,7 @@ jobs:
         attr:
           - prefmanager           # default GHC (9.10)
           - ghc912-prefmanager
+          - ghc914-prefmanager
 
     steps:
       - name: Checkout repo

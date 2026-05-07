@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:           prefmanager
-version:        0.2.0.0
+version:        0.3.0.0
 synopsis:       A CLI utility for managing macOS preferences
 description:    Please see the README on GitHub at <https://github.com/malob/prefmanager#readme>
 category:       CLI
@@ -14,8 +14,10 @@ license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
 
-extra-source-files:
+extra-doc-files:
     README.md
+    ChangeLog.md
+    screenshot.png
 
 source-repository head
   type:     git
@@ -24,7 +26,7 @@ source-repository head
 common shared
   default-language: Haskell2010
   build-depends:
-    , base
+    , base >= 4.20 && < 4.23
     , relude
   -- Use Relude as the implicit Prelude in every module.
   -- https://github.com/kowainik/relude#mixins

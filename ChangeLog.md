@@ -20,14 +20,16 @@
 - `defaultsCmd` now uses `proc` with argv instead of shell interpolation,
   removing a small command-injection surface for exotic domain names.
 
-## Unreleased changes
+## 0.3.0.0
 
+- Added GHC 9.14 to the build matrix (`ghc914-prefmanager`), now that
+  `patience-map`'s `containers < 0.8` upper bound is no longer in the
+  way. relude-1.2.2.2's doctests are skipped under 9.14 due to output-
+  format drift; the library itself compiles clean.
 - Dropped the `patience-map` (`patience`) dependency. `diffDomain` now
   uses `Data.Map.Merge.Strict.merge` directly with a local 3-constructor
   `Delta` ADT (`Old | New | Delta`) — no `Same` because the renderer
-  never used it. Behavior is unchanged. Side effect: GHC 9.14
-  (`containers >= 0.8`) is no longer blocked by `patience-0.3`'s
-  upper bound.
+  never used it. Behavior is unchanged.
 
 - `watch` auto-switches to `--plain` when stdout is not a TTY (e.g.
   redirected to a file). Avoids leaking ANSI escape sequences into

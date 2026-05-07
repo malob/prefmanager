@@ -39,6 +39,13 @@
           haskellProjects.ghc912 = mkProject "ghc912" // {
             autoWire = [ "packages" ];
           };
+          haskellProjects.ghc914 = pkgs.lib.recursiveUpdate (mkProject "ghc914") {
+            autoWire = [ "packages" ];
+            # relude-1.2.2.2's doctests fail under GHC 9.14 (output format
+            # drift; the library itself builds clean). Skip the test phase
+            # rather than wait on a relude release.
+            settings.relude.check = false;
+          };
         };
     };
 }
