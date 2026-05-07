@@ -260,6 +260,13 @@ loadFileRules custom = do
 -- longer fire are harmless, but new noise sources will need to be added.
 builtinIgnores :: [IgnoreRule]
 builtinIgnores = map unsafeRule
+
+  ----------------------------------------------------------------------
+  -- Cross-app framework patterns. Apply across many domains because the
+  -- underlying framework (AppKit, DuetKit, CloudKit, Sparkle, ...) is
+  -- embedded in every app that uses it.
+  ----------------------------------------------------------------------
+
   -- AppKit window/toolbar UI state, written across many app domains as
   -- windows move and resize.
   [ "*:NSWindow Frame *"
@@ -271,8 +278,39 @@ builtinIgnores = map unsafeRule
   -- and similar DuetKit clients.
   , "*:_DKThrottledActivity*"
 
-  -- Spotlight usage statistics.
+  -- Suggestions / TextUnderstanding bookmarks: fire across multiple
+  -- *.TextUnderstandingObserver domains.
+  , "*:deletionStreamBookmark"
+
+  -- CloudKit account-info cache appears across many daemons
+  -- (syncdefaultsd, sociallayerd, passd, keyboardservicesd, ...).
+  , "*:CloudKitAccountInfoCache"
+
+  -- CloudKit startup timestamp, recorded by every daemon that talks to
+  -- CloudKit (FaceTime, CallHistorySyncHelper, ...).
+  , "*:CKStartupTime"
+
+  -- Find My device-publishing timestamp written from multiple iCloud
+  -- daemons.
+  , "*:OwnedDeviceLastPublishDate"
+
+  -- Sparkle auto-updater "last check" timestamps. Many third-party Mac
+  -- apps embed Sparkle and write these regardless of user action. Scoped
+  -- to SULastCheck* rather than SU* because Sparkle's user-toggleable
+  -- keys (SUEnableAutomaticChecks, SUSendProfileInfo, etc.) share the SU
+  -- prefix.
+  , "*:SULastCheck*"
+
+
+  ----------------------------------------------------------------------
+  -- Apple system daemons. Per-domain rules grouped by subsystem.
+  ----------------------------------------------------------------------
+
+  -- Spotlight: usage statistics + searchable-bundle index. The bundle
+  -- index rewrites whenever any app is registered/launched and produces
+  -- large dict diffs.
   , "com.apple.Spotlight:engagementCount*"
+  , "com.apple.corespotlightui:CSReceiverBundleIdentifierState"
 
   -- Mission Control / Spaces runtime state. Embeds window IDs, PIDs, and
   -- live layout data; the user-facing toggle ("Displays have separate
@@ -282,50 +320,65 @@ builtinIgnores = map unsafeRule
   -- XPC scheduler bookkeeping for periodic activities.
   , "com.apple.xpc.activity2:ActivityBaseDates"
 
-  -- Internal accessory-update flag.
-  , "com.apple.PersonalAudio:shouldUpdateAccessory"
-
-  -- CloudKit/iCloud housekeeping that fires on a timer regardless of user
-  -- action. CloudKitAccountInfoCache appears across many daemons
-  -- (syncdefaultsd, sociallayerd, passd, keyboardservicesd, ...), so we
-  -- match the key in any domain.
-  , "*:CloudKitAccountInfoCache"
-  , "com.apple.routined:RTDefaultsSafetyCache*"
-  , "com.apple.CloudKit:AccountInfoValidationCounter"
-  , "*:OwnedDeviceLastPublishDate"
-  , "com.apple.bird.containers.notifications:user_uid_*"
-  , "com.apple.icloudmailagent:com.apple.icloud.mail.lastRetryTimestamp"
-
-  -- Suggestions / TextUnderstanding bookmarks: fire across multiple
-  -- *.TextUnderstandingObserver domains.
-  , "*:deletionStreamBookmark"
+  -- Identity Services / Continuity transport-layer state machine
+  -- transitions during normal APNS operation.
+  , "com.apple.identityservicesd:*StateMachine*"
 
   -- DuetKit app-prediction logging counters.
   , "com.apple.DuetExpertCenter.AppPredictionExpert:ATXUpdatePredictionsLogger*"
 
-  -- Aerial wallpaper background fetch.
-  , "com.apple.wallpaper.aerial:remoteResource*"
+  -- iCloud / CloudKit daemons that fire on internal timers regardless of
+  -- user action.
+  , "com.apple.routined:RTDefaultsSafetyCache*"
+  , "com.apple.CloudKit:AccountInfoValidationCounter"
+  , "com.apple.bird.containers.notifications:user_uid_*"
+  , "com.apple.icloudmailagent:com.apple.icloud.mail.lastRetryTimestamp"
+  , "com.apple.CallHistorySyncHelper:com.apple.callhistory.cloud-storage2"
+
+  -- mmcs (MobileMe Cloud Sync) periodic check timestamps.
+  , "com.apple.mmcs:report.LastSuccessful*"
 
   -- APS push connection state and other periodic refresh timers.
   , "com.apple.jetpackassetd:apsLastKnownConnected"
   , "com.apple.NewDeviceOutreach:config-refresh-epoch"
 
-  -- Persisted runtime UI state (derived from usage, not user-configured).
+  -- Aerial wallpaper background fetch.
+  , "com.apple.wallpaper.aerial:remoteResource*"
+
+  -- PersonalAudio internal accessory-update flag.
+  , "com.apple.PersonalAudio:shouldUpdateAccessory"
+
+  -- Background Sounds (accessibility) playback timer. The domain has
+  -- real prefs (volume, sound choice) so we filter just this one field.
+  , "com.apple.ComfortSounds:timerEndInterval"
+
+  -- Photos auto-tracked launch timestamp.
+  , "com.apple.photos.shareddefaults:PNUserDefaultPhotosAppLastLaunchDateKey"
+
+
+  ----------------------------------------------------------------------
+  -- Persisted runtime UI state. Derived from usage, not user-configured.
+  ----------------------------------------------------------------------
+
   , "com.apple.dock:trash-full"
   , "com.apple.finder:LastTrashState"
   , "com.apple.ActivityMonitor:OpenMainWindow"
+  , "com.apple.Photos:IPXDefaultIsRestoringViewControllers"
 
+  -- Control Center transient module visibility (e.g. AudioVideoModule
+  -- appears when audio is playing and disappears after). The user-facing
+  -- "Show in Menu Bar" toggles use the Visible form without the CC
+  -- suffix and are not affected.
+  , "com.apple.controlcenter:NSStatusItem VisibleCC *"
+
+
+  ----------------------------------------------------------------------
   -- Auto-tracked "recent" lists. Users don't hand-edit these; they're
   -- updated whenever you navigate to a folder / launch an app.
+  ----------------------------------------------------------------------
+
   , "com.apple.finder:FXRecentFolders"
   , "com.apple.dock:recent-apps"
-
-  -- Photos / mail / call-history / mmcs daemon timestamps and runtime flags.
-  , "com.apple.Photos:IPXDefaultIsRestoringViewControllers"
-  , "com.apple.photos.shareddefaults:PNUserDefaultPhotosAppLastLaunchDateKey"
-  , "com.apple.mmcs:report.LastSuccessful*"
-  , "*:CKStartupTime"
-  , "com.apple.CallHistorySyncHelper:com.apple.callhistory.cloud-storage2"
   ]
 
 -- | Example config-file content. Co-located with 'parseConfig' so the help

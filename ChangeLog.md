@@ -44,3 +44,15 @@
   the parent terminal and corrupt the ANSI display) and decodes stdout
   strictly as UTF-8. Non-UTF-8 output surfaces as `DefaultsError`
   rather than silently producing replacement characters.
+- Five additional built-in ignore patterns from observed real-world
+  noise: Sparkle auto-update timestamps (`*:SULastCheck*`), IDS
+  state-machine transitions, Background Sounds playback timer,
+  Spotlight bundle index, and Control Center transient module
+  visibility.
+- Reorganized the built-in ignore list into four sections (cross-app
+  framework patterns, Apple system daemons by subsystem, persisted
+  runtime UI state, auto-tracked recent lists). The list had grown
+  chronologically with each round of observation; merging duplicate
+  groupings (DuetKit, Spotlight) and lifting the universal `*:`
+  patterns to the top makes scanning for "is X covered?" feasible.
+  No rules added or removed by the reorganization itself.
