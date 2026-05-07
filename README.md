@@ -52,7 +52,7 @@ Watch:
 
 ```
 > prefmanager watch --help
-Usage: prefmanager watch [--plain] [--no-builtin-ignores]
+Usage: prefmanager watch [--plain] [--interval SECS] [--no-builtin-ignores]
                          [--ignore DOMAIN[:KEY]] [--ignore-file PATH]
                          (DOMAIN... | (-a|--all))
 
@@ -62,6 +62,8 @@ Available options:
   --plain                  Non-interactive output (no ANSI cursor tricks;
                            timestamps each event). Use this when piping to a
                            file.
+  --interval SECS          Polling interval in seconds (0 = no delay).
+                           Fractional values allowed. (default: 1)
   --no-builtin-ignores     Disable the built-in ignore patterns
   --ignore DOMAIN[:KEY]    Ignore rule (repeatable). Both sides support * and ?
                            globs. DOMAIN alone ignores the whole domain;

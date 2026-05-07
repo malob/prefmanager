@@ -1,4 +1,6 @@
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
 import Defaults
@@ -12,19 +14,23 @@ import Options.Applicative
 import Relude.Extra (un)
 import Data.Text (unpack)
 
-import Control.Exception (Exception(..), displayException, handle)
+import Control.Exception (Exception, displayException, handle)
 import qualified Data.Text.IO as TIO
 
 main :: IO ()
 main = runCommand =<< execParser opts
 
--- | Run a chosen command with friendly error handling for our own
--- 'ConfigError' exceptions; other exceptions propagate as bugs.
+-- | Run a chosen command with friendly error handling for our own typed
+-- exceptions ('ConfigError', 'DefaultsError'). Async exceptions (Ctrl-C,
+-- 'ThreadKilled') and any unexpected synchronous exceptions propagate so we
+-- don't disguise bugs as user errors.
 runCommand :: IO () -> IO ()
-runCommand = handle reportConfigError
+runCommand =
+    handle (reportError @ConfigError)
+  . handle (reportError @DefaultsError)
   where
-    reportConfigError :: ConfigError -> IO ()
-    reportConfigError e = do
+    reportError :: Exception e => e -> IO ()
+    reportError e = do
       TIO.hPutStrLn stderr $ "Error: " <> toText (displayException e)
       exitFailure
 
@@ -58,17 +64,38 @@ commands = hsubparser
   )
 
 watchCmd :: Parser (IO ())
-watchCmd = run <$> watchOptionsParser <*> filterOptionsParser <*> targetParser
+watchCmd = run <$> plainParser <*> intervalParser <*> filterOptionsParser <*> targetParser
   where
-    run plain fopts target = do
+    run plain interval fopts target = do
       flt <- buildFilter fopts
       ds  <- target
-      watch WatchOptions { watchPlain = plain, watchFilter = flt } ds
+      watch WatchOptions
+        { watchPlain    = plain
+        , watchInterval = interval
+        , watchFilter   = flt
+        } ds
 
-    watchOptionsParser = switch
+    plainParser = switch
       (  long "plain"
       <> help "Non-interactive output (no ANSI cursor tricks; timestamps each event). Use this when piping to a file."
       )
+
+    intervalParser = option intervalReader
+      (  long "interval"
+      <> metavar "SECS"
+      <> value (1 * 1_000_000)
+      <> showDefaultWith (const "1")
+      <> help "Polling interval in seconds (0 = no delay). Fractional values allowed."
+      )
+
+    intervalReader = eitherReader $ \s -> case readMaybe s :: Maybe Double of
+      Nothing -> Left $ "expected a number, got: " <> s
+      Just n
+        | isNaN n || isInfinite n -> Left "interval must be a finite number"
+        | n < 0                   -> Left "interval must be >= 0"
+        | n * 1_000_000 > fromIntegral (maxBound :: Int) ->
+            Left "interval too large"
+        | otherwise               -> Right (round (n * 1_000_000))
 
     targetParser =
           (pure . fromList <$> some (DomainName <$> strArgument

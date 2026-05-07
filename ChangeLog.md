@@ -21,3 +21,26 @@
   removing a small command-injection surface for exotic domain names.
 
 ## Unreleased changes
+
+- New `--interval SECS` flag for `watch` controls the polling rate
+  (default 1s, fractional values allowed, `0` preserves the previous
+  spin-as-fast-as-possible behavior). Previously the watch loop polled
+  with no delay between iterations, which on `--all` could spawn
+  hundreds of `defaults` subprocesses per second.
+- Watch loop now catches synchronous exceptions only when applying its
+  per-domain failure tolerance. Async exceptions (`UserInterrupt`,
+  `ThreadKilled`, etc.) propagate cleanly, so Ctrl-C reliably stops
+  the watcher. Previously a `try @SomeException` could swallow
+  `ThreadKilled` and turn it into a per-domain warning while the loop
+  kept running.
+- New `DefaultsError` type wraps failures from `/usr/bin/defaults`
+  (spawn failure, process exit, UTF-8 decode, plist parse) with structured context
+  (argv, exit code, captured stderr, domain name). One-shot commands
+  (`domains`, `keys`, `ignore-defaults`) print a clean `Error: ...`
+  message and exit non-zero on `DefaultsError`; the watch loop logs
+  the failing domain to stderr and carries forward the previous
+  snapshot.
+- `defaultsCmd` now captures stderr (rather than letting it leak to
+  the parent terminal and corrupt the ANSI display) and decodes stdout
+  strictly as UTF-8. Non-UTF-8 output surfaces as `DefaultsError`
+  rather than silently producing replacement characters.
