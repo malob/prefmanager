@@ -32,6 +32,24 @@
   with System Settings actions.
 - `watch` exits with an error when the ignore filter leaves no
   domains to watch (instead of polling silently forever).
+- `watch --all` now re-lists domains each poll and renders genuinely
+  new domains (those that didn't exist when the watcher started) as
+  `<domain> (Domain added, N keys)` followed by the key list.
+  Previously these were invisible because the domain set was captured
+  once at startup. If `defaults domains` itself fails mid-watch, the
+  watcher warns once and carries forward the previous set rather than
+  crashing.
+- Per-domain export warnings are now rate-limited: a permanently-
+  failing domain produces one warning on the transition into the
+  failing state, then nothing while it stays failing. Recovery is
+  silent — the next actual diff is the user-visible signal.
+- The watch loop now tracks five per-domain states (snapshotted, lost
+  contact, never contacted, newly appeared, vanished) so post-startup-
+  new domains render as added even when their first export failed,
+  baseline-failure recoveries stay quiet, and a domain that disappears
+  from the list renders a one-line `(Domain removed, N keys)`
+  acknowledgement (no key list) before being kept in 'vanished' state
+  for potential return.
 
 - New `--interval SECS` flag for `watch` controls the polling rate
   (default 1s, fractional values allowed, `0` preserves the previous

@@ -2,16 +2,49 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Defaults.Pretty where
 
-import Defaults.Types (DomainDiff(..), DomainName(..), Key)
+import Defaults.Types (Domain(..), DomainDiff(..), DomainName(..), Key, WatchEvent(..))
 
 import Prelude hiding (group)
 import Relude.Extra (un)
 
+import qualified Data.Map.Strict as M
 import Data.Map.Strict (foldMapWithKey)
 import Patience.Map (Delta(..))
 import Prettyprinter
 import Prettyprinter.Render.Terminal
 import Text.XML.Plist (PlObject(..))
+
+-- | Render the events produced by one watch-loop iteration. Each domain
+-- gets one block: a per-key diff for changed domains, a key list with
+-- count for newly-appeared domains.
+prettyWatchEvents :: Map DomainName WatchEvent -> Doc AnsiStyle
+prettyWatchEvents = foldMapWithKey go
+  where
+    go (DomainName name) = \case
+      EventChanged dd ->
+        annotate (bold <> italicized) (pretty name)
+        <> hardline <> hardline
+        <> indent 2 (prettyDomainDiff dd)
+        <> hardline
+      EventAdded ks total ->
+        annotate (bold <> italicized) (pretty name)
+        <+> "(Domain added," <+> renderCount ks total <> ")"
+        <> hardline <> hardline
+        <> indent 2 (vsep (pretty <$> ks))
+        <> hardline <> hardline
+      EventRemoved ks total ->
+        annotate (bold <> italicized) (pretty name)
+        <+> "(Domain removed," <+> renderCount ks total <> ")"
+        <> hardline <> hardline
+
+renderCount :: [a] -> Int -> Doc AnsiStyle
+renderCount ks total =
+  let n = length ks
+      filtered = total - n
+  in if filtered == 0
+       then pretty n <+> if n == 1 then "key" else "keys"
+       else pretty n <+> "of" <+> pretty total <+> "keys,"
+            <+> pretty filtered <+> "filtered"
 
 prettyDomainDiffs :: Map DomainName DomainDiff -> Doc AnsiStyle
 prettyDomainDiffs = foldMapWithKey go where

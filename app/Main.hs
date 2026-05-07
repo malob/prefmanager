@@ -112,12 +112,12 @@ watchCmd = run <$> plainParser <*> intervalParser <*> filterOptionsParser <*> ta
         | otherwise               -> Right (round (n * 1_000_000))
 
     targetParser =
-          (pure . fromList <$> some (DomainName <$> strArgument
+          (pure . WatchSpecific . fromList <$> some (DomainName <$> strArgument
             (  metavar "DOMAIN..."
             <> help "Domain(s) that will be watched"
             <> completer domainCompleter
             )))
-      <|> flag' domains
+      <|> flag' (pure WatchAll)
             (  long  "all"
             <> short 'a'
             <> help  "Watch all domains including NSGlobalDomain"
