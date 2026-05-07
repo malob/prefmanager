@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:           prefmanager
-version:        0.1.0.0
+version:        0.2.0.0
 synopsis:       A CLI utility for managing macOS preferences
 description:    Please see the README on GitHub at <https://github.com/malob/prefmanager#readme>
 category:       CLI
@@ -38,6 +38,7 @@ library
   hs-source-dirs:   src
   exposed-modules:
       Defaults
+      Defaults.Filter
       Defaults.Pretty
       Defaults.Types
   other-modules:
@@ -49,12 +50,15 @@ library
     , async
     , async-pool
     , containers
+    , directory
+    , filepath
     , hxt
     , patience
     , plist
     , prettyprinter
     , prettyprinter-ansi-terminal
     , text
+    , time
     , typed-process
 
 executable prefmanager
