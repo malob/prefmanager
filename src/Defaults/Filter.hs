@@ -163,7 +163,7 @@ domainIsIgnored Filter{..} d =
 
 keyIsIgnored :: Filter -> DomainName -> Key -> Bool
 keyIsIgnored Filter{..} d k =
-  any (\(dp, kp) -> matchGlob dp (un d) && matchGlob kp (toText k)) filterKeyRules
+  any (\(dp, kp) -> matchGlob dp (un d) && matchGlob kp k) filterKeyRules
 
 -- | Drop fully-ignored domains from a set (used to skip exporting them).
 filterDomainSet :: Filter -> Set DomainName -> Set DomainName

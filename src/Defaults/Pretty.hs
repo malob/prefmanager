@@ -3,16 +3,20 @@
 module Defaults.Pretty where
 
 import Defaults.Types
-  (Delta(..), Domain(..), DomainDiff(..), DomainName(..), Key, WatchEvent(..))
+  (Delta(..), Domain(..), DomainDiff(..), DomainName(..), Key, PrefValue(..), WatchEvent(..))
 
 import Prelude hiding (group)
 import Relude.Extra (un)
 
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Base64 as B64
 import qualified Data.Map.Strict as M
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+
 import Data.Map.Strict (foldMapWithKey)
 import Prettyprinter
 import Prettyprinter.Render.Terminal
-import Text.XML.Plist (PlObject(..))
 
 -- | Render the events produced by one watch-loop iteration. Each domain
 -- gets one block: a per-key diff for changed domains, a key list with
@@ -58,7 +62,7 @@ prettyDomainDiffs = foldMapWithKey go where
 
 prettyDomainDiff :: DomainDiff -> Doc AnsiStyle
 prettyDomainDiff = foldMapWithKey go . un where
-  go :: Key -> Delta PlObject -> Doc AnsiStyle
+  go :: Key -> Delta PrefValue -> Doc AnsiStyle
   go key = (<> hardline <> hardline) . \case
     Delta old new
       -> pretty key <+> "(Value changed)"
@@ -77,16 +81,24 @@ prettyDomainDiff = foldMapWithKey go . un where
   red = annotate $ colorDull Red
   green = annotate $ colorDull Green
 
-instance Pretty PlObject where
+-- | Render a 'PrefValue' as the same XML-shaped output the previous
+-- 'Pretty PlObject' instance produced — keeping the
+-- copy-pasteable-into-@defaults write@ affinity that motivated the
+-- format. Dict entries render in source order ('PvDict' is a
+-- list-of-pairs); string content preserves newlines via 'hardline'
+-- which 'group' can't flatten. 'PvData' renders a length and a
+-- deterministic base64 fingerprint sampling the start and end of the
+-- encoded form so changes anywhere in the blob are visible.
+instance Pretty PrefValue where
   pretty = \case
-    PlString  x -> tag "string" $ pretty x
-    PlBool    x -> bool "<false/>" "<true/>" x
-    PlInteger x -> tag "integer" $ pretty x
-    PlReal    x -> tag "real" $ pretty x
-    PlArray   x -> tag "array" $ concatWith ((<>) . (<> hardline)) (fmap pretty x)
-    PlDict    x -> tag "dict" $ concatWith ((<>) . (<> hardline)) (fmap prettyDict x)
-    PlData    x -> tag "data" "[binary data]"
-    PlDate    x -> tag "date" $ pretty x
+    PvString  x -> tag "string" $ verbatim x
+    PvBool    x -> if x then "<true/>" else "<false/>"
+    PvInteger x -> tag "integer" $ pretty x
+    PvReal    x -> tag "real" $ pretty x
+    PvArray   x -> tag "array" $ concatWith ((<>) . (<> hardline)) (fmap pretty x)
+    PvDict    x -> tag "dict" $ concatWith ((<>) . (<> hardline)) (prettyDict <$> x)
+    PvData    x -> tag "data" (prettyData x)
+    PvDate    x -> tag "date" $ pretty x
 
     where
       prettyDict (k, o) = tag "key" (pretty k) <> hardline <> pretty o
@@ -97,3 +109,32 @@ instance Pretty PlObject where
           open = angles t
           close = angles ("/" <> t)
 
+-- | Render a 'Text' preserving its line structure. @prettyprinter@'s
+-- standard 'Pretty Text' instance produces 'line' breaks that 'group'
+-- can flatten to spaces; for @\<string\>@ content we use 'hardline'
+-- so a parsed @"foo\\nbar"@ stays multi-line in the output instead of
+-- rendering as @"foo bar"@.
+verbatim :: Text -> Doc ann
+verbatim = concatWith (\a b -> a <> hardline <> b) . fmap pretty . T.lines
+
+-- | Render a 'PvData' payload as @[N bytes, base64:AAAAAAAA…ZZZZZZZZ]@.
+-- The fingerprint samples the first and last 8 base64 characters of
+-- the encoded form so changes anywhere in the blob have a strong
+-- chance of being visible — covers ~12 raw bytes (6 prefix + 6 suffix)
+-- which is enough to discriminate typical macOS plist data values.
+-- Prefix-only and 4+4 samples both leave middle-only changes invisible
+-- for medium-length blobs; 8+8 is a noticeable improvement at no cost
+-- in display width. For small blobs (≤ 24 base64 chars) we emit the
+-- whole encoded form rather than truncate.
+prettyData :: BS.ByteString -> Doc ann
+prettyData bs = pretty msg
+  where
+    n        = BS.length bs
+    encoded  = B64.encode bs
+    fp
+      | BS.length encoded <= 24 = TE.decodeLatin1 encoded
+      | otherwise = TE.decodeLatin1 (BS.take 8 encoded)
+                 <> "\x2026"  -- "…"
+                 <> TE.decodeLatin1 (BS.drop (BS.length encoded - 8) encoded)
+    unit     = if n == 1 then "byte" else "bytes" :: Text
+    msg      = "[" <> show n <> " " <> unit <> ", base64:" <> fp <> "]" :: Text

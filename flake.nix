@@ -8,12 +8,6 @@
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
     haskell-flake.url = "github:srid/haskell-flake";
-
-    # Fork of `plist` that supports MonadFail; upstream is unmaintained.
-    plist-source = {
-      url = "github:malob/plist/monadfail";
-      flake = false;
-    };
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -26,8 +20,6 @@
         let
           mkProject = ghc: {
             basePackages = pkgs.haskell.packages.${ghc};
-            packages.plist.source = inputs.plist-source;
-            settings.plist.broken = false;
           };
         in
         {
@@ -45,6 +37,12 @@
             # drift; the library itself builds clean). Skip the test phase
             # rather than wait on a relude release.
             settings.relude.check = false;
+            # blaze-markup and blaze-html (transitive via xml-conduit)
+            # declare containers < 0.8 but GHC 9.14 ships containers-0.8.
+            # Jailbreak removes the upper bound; the libraries compile
+            # fine against the new containers.
+            settings.blaze-markup.jailbreak = true;
+            settings.blaze-html.jailbreak = true;
           };
         };
     };

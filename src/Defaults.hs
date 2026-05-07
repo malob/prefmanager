@@ -7,10 +7,11 @@
 module Defaults where
 
 import Defaults.Filter (Filter, filterDomainSet, keyIsIgnored)
+import Defaults.Plist (parsePlist)
 import Defaults.Pretty (prettyWatchEvents)
 import Defaults.Types
   ( Delta(..), DomainDiff(..), Domains(..), Domain(..), DomainName(..)
-  , Key, WatchEvent(..) )
+  , Key, PrefValue(..), WatchEvent(..), renderPlistError )
 
 import Relude.Extra (un, wrap, traverseToSnd, keys)
 
@@ -35,8 +36,6 @@ import qualified Prettyprinter.Render.Text as PRT
 import Prettyprinter.Render.Terminal (AnsiStyle, putDoc)
 import System.Console.ANSI (clearLine, setCursorColumn)
 import System.Exit (ExitCode(..))
-import Text.XML.HXT.Core (no, withSubstDTDEntities, withValidate)
-import Text.XML.Plist (PlObject, fromPlDict, readPlistFromString)
 import System.Process.Typed (proc, readProcess)
 
 -- | Errors from running @/usr/bin/defaults@ or parsing its output. The
@@ -86,49 +85,46 @@ syncOnly e = case fromException e :: Maybe SomeAsyncException of
   Nothing -> Just e
 
 -- | Run @/usr/bin/defaults@ with the given argv. Captures stdout and stderr,
--- decodes stdout strictly as UTF-8, and throws 'DefaultsError' on spawn
--- failure, non-zero exit, or decode failure.
-defaultsCmd :: [Text] -> IO Text
+-- and throws 'DefaultsError' on spawn failure or non-zero exit. Returns the
+-- raw stdout bytes; consumers decode (strict UTF-8 for the 'domains' text
+-- output, XML parser for 'export' plist output).
+defaultsCmd :: [Text] -> IO LBS.ByteString
 defaultsCmd args = do
   (ec, out, err) <- readProcess (proc "/usr/bin/defaults" (toString <$> args))
     `catch` \(e :: IOException) ->
       throwIO $ ProcessStartFailed args (toText (displayException e))
   case ec of
     ExitFailure _ -> throwIO $ ProcessFailed args ec (decodeStderr err)
-    ExitSuccess   -> case TE.decodeUtf8' (LBS.toStrict out) of
-      Left e  -> throwIO $ DecodeFailed args (toText (displayException e))
-      Right t -> pure t
+    ExitSuccess   -> pure out
   where
     -- stderr is best-effort context; lenient decode preserves whatever
     -- bytes the process emitted even if they aren't valid UTF-8.
     decodeStderr = TE.decodeUtf8With lenientDecode . LBS.toStrict
 
--- | Parse a plist XML 'Text'. DTD validation and entity substitution are
--- disabled because macOS's plist DTD reference is not always resolvable
--- offline.
-parsePlist :: Text -> IO PlObject
-parsePlist = readPlistFromString [withValidate no, withSubstDTDEntities no] . toString
-
 -- | Gets list of domains by running @defaults domains@ and adds @NSGlobalDomain@ to the 'Set'.
 domains :: IO (Set DomainName)
-domains
-  =   fromList
-  .   wrap
-  .   ("NSGlobalDomain" :)
-  .   splitOn ", "
-  .   stripEnd
-  <$> defaultsCmd ["domains"]
+domains = do
+  bs <- defaultsCmd ["domains"]
+  case TE.decodeUtf8' (LBS.toStrict bs) of
+    Left e -> throwIO $ DecodeFailed ["domains"] (toText (displayException e))
+    Right t -> pure $ fromList $ wrap $ "NSGlobalDomain" : splitOn ", " (stripEnd t)
 
--- | Runs @defaults export [domain] -@ and parses the output. Wraps any
--- synchronous exception from the plist parser as 'PlistParseFailed' so all
--- failures from this function surface as 'DefaultsError'.
+-- | Runs @defaults export [domain] -@ and parses the output. Failures from
+-- the pure parser are wrapped as 'PlistParseFailed' so all failures from
+-- this function surface as 'DefaultsError'.
 export :: DomainName -> IO Domain
 export d = do
-  text <- defaultsCmd ["export", un d, "-"]
-  pl   <- handleSync wrapParseError (parsePlist text)
-  pure $ wrap $ fromList @(Map _ _) $ maybeToMonoid $ fromPlDict pl
-  where
-    wrapParseError e = throwIO $ PlistParseFailed d (toText (displayException e))
+  bs <- defaultsCmd ["export", un d, "-"]
+  case parsePlist bs of
+    Left err -> throwIO $ PlistParseFailed d (renderPlistError err)
+    -- The parser guarantees no duplicate keys, so M.fromList is safe.
+    -- We use Map at the Domain level to keep top-level domain key
+    -- listings (e.g. `prefmanager keys DOMAIN`) sorted alphabetically.
+    -- Source order matters inside nested 'PvDict' values (which stay
+    -- as list-of-pairs) but not at the per-domain top level where
+    -- alphabetical scanning is more useful.
+    Right (PvDict pairs) -> pure (Domain (M.fromList pairs))
+    Right _ -> throwIO $ PlistParseFailed d "expected top-level <dict>"
 
 -- | Runs 'export' on the 'Set' of provided domains.
 --
@@ -408,7 +404,9 @@ renderPlain :: Doc AnsiStyle -> Text
 renderPlain = PRT.renderStrict . layoutPretty defaultLayoutOptions . unAnnotate
 
 printKeys :: DomainName -> IO ()
-printKeys = traverse_ putStrLn . keys @(Map _ PlObject) . un <=< export
+printKeys d = do
+  Domain m <- export d
+  traverse_ putTextLn (M.keys m)
 
 printDomains :: IO ()
 printDomains = traverse_ (putTextLn . un) =<< domains

@@ -1,5 +1,83 @@
 # Changelog for prefmanager
 
+## 0.4.0.0
+
+- **Replaced the plist parser.** `src/Defaults/Plist.hs` is a new
+  hand-rolled parser on top of `xml-conduit`. The previous stack
+  (the `plist` package + the `Text.XML.HXT` toolkit) is gone, along
+  with the `malob/plist#monadfail` fork pin in `cabal.project` and
+  the corresponding `plist-source` flake input.
+
+  Headline reason: the upstream `plist` parser silently dropped
+  `<key>/<data>` pairs whose `<data>` element contained any
+  whitespace — exactly what `defaults export` always emits. As a
+  result, every binary preference value (security tokens, recent-
+  files bookmarks, app state, NSStatusItem data, ...) was invisible
+  to prefmanager. Owning the parser fixes this; binary keys now show
+  up in diffs, `keys` listings, and `watch` output.
+
+- **New project-local `PrefValue` ADT** in `Defaults.Types` replaces
+  the upstream `PlObject`. Notably:
+  - `PvDict` is `[(Text, PrefValue)]` to preserve source order
+    faithfully when rendering nested dict values; equality is
+    overridden to be order-insensitive so diffs treat dicts as
+    semantic dictionaries. Duplicate keys are rejected at parse time.
+    `Domain` (the per-domain top-level container) stays
+    `Map Text PrefValue` since alphabetical key listings are more
+    useful than source order for `prefmanager keys`, `EventAdded`,
+    and `EventRemoved` rendering.
+  - `PvData` carries the decoded `ByteString` so renders can show a
+    real fingerprint; the previous `[binary data]` placeholder hid
+    real changes between two different binary values.
+  - We deliberately do not derive `Ord` (`Double`'s `Ord` is partial
+    via NaN, and we don't compare values ordinally anywhere).
+
+- **`Key = String` → `Key = Text`.** Long-standing accidental from
+  having to match the upstream `plist` API. With the new parser we
+  control the type and drop a layer of `toText`/`toString`
+  round-trips throughout `Filter` and `Pretty`.
+
+- **`<data>` rendering** now shows length and a deterministic base64
+  fingerprint of the bytes. For small blobs (≤ 16 base64 chars) the
+  whole encoded form is shown; longer blobs sample the first and
+  last 4 base64 chars (`<data>[256 bytes, base64:AbCd…WxYz]</data>`)
+  so changes anywhere in the blob remain visible — a prefix-only
+  fingerprint would let two same-length blobs that share their
+  first six bytes render identically.
+
+- **Stricter parser.** Non-whitespace text mixed in among collection
+  children (e.g. `<dict>junk<key>k</key>...</dict>`) now errors
+  loudly rather than being silently dropped. Strings preserve their
+  newlines through rendering (the renderer uses `hardline` rather
+  than the flattenable `line`). Base64 whitespace inside `<data>` is
+  recognized via a strict ASCII-only predicate (space/tab/CR/LF) so
+  exotic whitespace like NBSP fails decoding rather than being
+  silently stripped.
+
+- **`PlistError` rendered for users**, not via derived `Show`. CLI
+  error messages now read like `couldn't parse "abc" as an integer`
+  rather than `PlistBadInteger "abc"`.
+
+- **New test suite.** `cabal test` runs `prefmanager-test` (`tasty` +
+  `tasty-hunit`, 35 tests). Coverage includes scalars (with very-
+  large integers), nested collections, the `<data>` whitespace bug
+  as a permanent regression guard, malformed input (non-whitespace
+  text between collection children, missing values, bad
+  base64/numbers), dict semantics (duplicate-key detection,
+  source-order independence under equality, source-order
+  preservation in the underlying list), and whitespace discipline
+  (around scalar payloads, inside `<data>`, between collection
+  children).
+
+- **Dependencies:** dropped `hxt` (and the transitive
+  `hxt-charproperties` / `hxt-regex-xmlschema` / `hxt-unicode`
+  closure) and `plist`. Added `xml-conduit`, `base64-bytestring`, and
+  test-only `tasty` + `tasty-hunit`.
+
+- GHC 9.14 (`ghc914-prefmanager`) needs `settings.blaze-markup.jailbreak`
+  and `settings.blaze-html.jailbreak` (transitive deps of
+  `xml-conduit` with `containers < 0.8` upper bounds).
+
 ## 0.2.0.0
 
 - Added an ignore filter to `watch` that suppresses macOS housekeeping keys

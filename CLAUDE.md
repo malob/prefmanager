@@ -18,11 +18,14 @@ build config, bumping GHC, or adding dependencies.
   `haskellProjects.<name>` entry.
 - **Prelude:** Relude is the implicit prelude via Cabal `mixins` (see the
   `common shared` stanza). No `import Relude` needed in source files.
-- **Plist fork:** the upstream `plist` package on Hackage doesn't support
-  `MonadFail`. We pull from `github:malob/plist#monadfail` in both
-  `cabal.project` (via `source-repository-package`) and `flake.nix` (via
-  the `plist-source` flake input + `packages.plist.source` override).
-  Until upstream merges the fix, both pins must move together.
+- **Plist parser:** hand-rolled in `src/Defaults/Plist.hs` on top of
+  `xml-conduit`. We do not use the upstream `plist` package (its parser
+  silently dropped `<key>/<data>` pairs whose `<data>` content had any
+  whitespace, which is exactly what `defaults export` always emits).
+- **Tests:** `cabal test` runs the `prefmanager-test` suite (`tasty` +
+  `tasty-hunit`). The plist parser is the main thing under test; new
+  parser behavior should land with a corresponding test in
+  `test/PlistSpec.hs`.
 
 ## Day-to-day commands
 
