@@ -50,6 +50,12 @@ cabal test
    `cabal.project.freeze`.
 3. Commit both files together. CI will rebuild against the new plan.
 
+> [!note]
+> If `cabal freeze` runs in an environment without a populated Hackage
+> index (sandboxed Nix shells sometimes don't have one), it can rewrite
+> `index-state:` from the pinned timestamp to `HEAD`. Spot-check the
+> `cabal.project.freeze` diff and restore the timestamp manually if so.
+
 ## Bumping GHC
 
 1. Pick the new version (must be available in current `nixpkgs-unstable` —
@@ -88,6 +94,40 @@ nix flake update --update-input nixpkgs   # just nixpkgs
 After updating nixpkgs, also re-run `cabal freeze` if Hackage's
 `index-state` should advance — the freeze file embeds the index timestamp.
 
+## Built-in ignore list
+
+The watch command's default ignore filter lives at
+`src/Defaults/Filter.hs:builtinIgnores` — a list of pattern strings parsed
+through `unsafeRule`. **Malformed patterns crash the program at startup**
+(neither the type checker nor hlint catches them); after editing, run
+`prefmanager ignore-defaults` to verify the list still loads.
+
+The list is empirically derived against macOS 26.x and is expected to
+drift across major macOS releases. Entries that no longer fire are
+harmless; new noise sources are added by observation. It's organized
+into four sections:
+
+- Cross-app framework patterns (everything matching `*:`)
+- Apple system daemons (per-domain, grouped by subsystem)
+- Persisted runtime UI state
+- Auto-tracked "recent" lists
+
+## Error model
+
+Two project-defined exception types surface user-actionable errors:
+
+- `ConfigError` (`src/Defaults/Filter.hs`) — ignore-config file missing,
+  not UTF-8, or parse-failed. Thrown from `buildFilter` / `loadFileRules`.
+- `DefaultsError` (`src/Defaults.hs`) — `/usr/bin/defaults` failures:
+  spawn `IOException`, non-zero exit (with captured stderr), strict
+  UTF-8 decode failure, plist parse failure (with the failing
+  `DomainName`). Thrown from `defaultsCmd` / `export`.
+
+Both are caught at the top level by `runCommand` in `app/Main.hs`, which
+prints `Error: <displayException>` to stderr and `exitFailure`s. New
+user-facing failure modes should extend one of these sums rather than
+introduce a new exception type.
+
 ## Things to avoid
 
 - **Don't reintroduce `package.yaml` / hpack.** Hand-written cabal is the
@@ -109,5 +149,7 @@ After updating nixpkgs, also re-run `cabal freeze` if Hackage's
 - **GHC 9.14** is blocked because `patience-0.3` declares
   `containers >= 0.5.9 && < 0.8`, and GHC 9.14 ships containers-0.8. Adding
   it would require a `settings.patience.jailbreak = true;` override
-  scoped to a `haskellProjects.ghc914` entry. Defer until upstream
-  `patience` relaxes the bound.
+  scoped to a `haskellProjects.ghc914` entry, *or* dropping the
+  `patience-map` dependency (planned — `Defaults.diffDomain` only uses
+  the four-way merge shape, which `Data.Map.Merge.Strict.merge` from
+  `containers` already provides).
